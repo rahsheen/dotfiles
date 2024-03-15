@@ -29,7 +29,7 @@ local rubocop = null_ls.builtins.formatting.rubocop
 null_ls.setup {
   debug = false,
   sources = {
-    formatting.prettier,
+    -- formatting.prettier,
     -- formatting.stylua,
     null_ls.builtins.code_actions.gitsigns,
     -- setting eslint_d only if we have a ".eslintrc.js" file in the project
@@ -60,16 +60,16 @@ null_ls.setup {
     end),
   },
   -- format on save
-  on_attach = function(client, bufnr)
-    if client.supports_method 'textDocument/formatting' then
-      vim.api.nvim_clear_autocmds { group = augroup, buffer = bufnr }
-      vim.api.nvim_create_autocmd('BufWritePre', {
-        group = augroup,
-        buffer = bufnr,
-        callback = function()
-          lsp_formatting(bufnr)
-        end,
-      })
-    end
-  end,
+  -- on_attach = function(client, bufnr)
+  --   if client.supports_method 'textDocument/formatting' then
+  --     vim.api.nvim_clear_autocmds { group = augroup, buffer = bufnr }
+  --     vim.api.nvim_create_autocmd('BufWritePre', {
+  --       group = augroup,
+  --       buffer = bufnr,
+  --       callback = function()
+  --         lsp_formatting(bufnr)
+  --       end,
+  --     })
+  --   end
+  -- end,
 }
