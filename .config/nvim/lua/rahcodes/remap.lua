@@ -56,10 +56,6 @@ vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
 -- Save
 nmap('<C-s>', ':wa<CR>')
 
--- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>m', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader>/', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-
 -- Trouble bindings
 vim.keymap.set('n', '<leader>xx', function()
   require('trouble').open()
