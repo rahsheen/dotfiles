@@ -102,5 +102,25 @@ return {
     'pmizio/typescript-tools.nvim',
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
     opts = {},
+    config = function()
+      require('typescript-tools').setup {
+        settings = { expose_as_code_action = 'all' },
+      }
+    end,
+  },
+  -- Lua
+  {
+    'folke/zen-mode.nvim',
+    opts = {
+      -- your configuration comes here
+      -- or leave it empty to use the default settings
+      -- refer to the configuration section below
+    },
+  },
+  {
+    'mbbill/undotree',
+    config = function()
+      vim.keymap.set('n', '<leader>5', vim.cmd.UndotreeToggle)
+    end,
   },
 }

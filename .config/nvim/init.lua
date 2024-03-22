@@ -617,7 +617,7 @@ require('lazy').setup({
                 callSnippet = 'Replace',
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
+              diagnostics = { disable = { 'missing-fields' }, globals = { 'vim' } },
             },
           },
         },
@@ -640,6 +640,7 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
+        automatic_installation = { exclude = { 'solargraph' } },
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -864,7 +865,7 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  require 'kickstart.plugins.debug',
+  -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
