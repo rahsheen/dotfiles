@@ -123,4 +123,35 @@ return {
       vim.keymap.set('n', '<leader>5', vim.cmd.UndotreeToggle)
     end,
   },
+  {
+    'ThePrimeagen/harpoon',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('harpoon').setup {}
+      local silent = { silent = true }
+
+      vim.keymap.set('n', '<leader>a', function()
+        require('harpoon.mark').add_file()
+      end, { desc = 'Harpoon [A[dd' })
+      vim.keymap.set('n', '<C-e>', function()
+        require('harpoon.ui').toggle_quick_menu()
+      end, silent)
+      vim.keymap.set('n', '<leader>tc', function()
+        require('harpoon.cmd-ui').toggle_quick_menu()
+      end, silent)
+
+      vim.keymap.set('n', '<C-h>', function()
+        require('harpoon.ui').nav_file(1)
+      end, silent)
+      vim.keymap.set('n', '<C-t>', function()
+        require('harpoon.ui').nav_file(2)
+      end, silent)
+      vim.keymap.set('n', '<C-n>', function()
+        require('harpoon.ui').nav_file(3)
+      end, silent)
+      vim.keymap.set('n', '<C-s>', function()
+        require('harpoon.ui').nav_file(4)
+      end, silent)
+    end,
+  },
 }
