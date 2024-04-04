@@ -1,10 +1,9 @@
 return {
   {
     'ThePrimeagen/git-worktree.nvim',
-    dependencies = 'telescope',
+    -- dependencies = 'telescope',
     config = function()
       local Worktree = require 'git-worktree'
-      Worktree.setup()
 
       -- op = Operations.Switch, Operations.Create, Operations.Delete
       -- metadata = table of useful values (structure dependent on op)
@@ -25,8 +24,20 @@ return {
       end)
     end,
     keys = {
-      { '<leader>bw', require('telescope').extensions.git_worktree.git_worktrees, desc = '[B]rowse Git Worktrees' },
-      { '<leader>cw', require('telescope').extensions.git_worktree.create_git_worktree, desc = '[C]reate Git [W]orktree' },
+      {
+        '<leader>bw',
+        function()
+          require('telescope').extensions.git_worktree.git_worktrees()
+        end,
+        desc = '[B]rowse Git Worktrees',
+      },
+      {
+        '<leader>cw',
+        function()
+          require('telescope').extensions.git_worktree.create_git_worktree()
+        end,
+        desc = '[C]reate Git [W]orktree',
+      },
     },
   },
 }
