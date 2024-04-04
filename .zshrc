@@ -10,7 +10,7 @@ else
 fi
 
 alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
-alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
+alias vimconfig="cd $HOME/.config && GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
 alias asdfg="setxkbmap -option ctrl:nocaps dvorak"
 alias aoeu="setxkbmap -option ctrl:nocaps us"
 

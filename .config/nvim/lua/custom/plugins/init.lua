@@ -73,28 +73,57 @@ return {
   {
     'tpope/vim-fugitive',
     dependencies = { { 'tpope/vim-rhubarb' } },
+    keys = {
+      { '<leader>gs', vim.cmd.Git },
+      { '<leader>gh', ':diffget //3<CR>' },
+      { '<leader>gu', ':diffget //2<CR>' },
+      -- { '<leader>gc', ':GCheckout<CR>' },
+      -- { '<leader>ga', ':G add %:p<CR><CR>' },
+      -- { '<leader>gc', ':G commit -v -q<CR>' },
+      -- { '<leader>gt', ':G commit -v -q %:p<CR>' },
+      -- { '<leader>gff', ':G ff<CR>' },
+      -- { '<leader>gfo', ':G fetch origin<CR>' },
+      -- { '<leader>gd', ':Gdiff<CR>' },
+      -- { '<leader>ge', ':Gedit<CR>' },
+      -- { '<leader>gr', ':Gread<CR>' },
+      -- { '<leader>grb', ':G rebase -i<CR>' },
+      -- { '<leader>gw', ':Gwrite<CR><CR>' },
+      -- { '<leader>gl', ':silent! Glog<CR>:bot copen<CR>' },
+      -- { '<leader>gp', ':Ggrep<Space>' },
+      -- { '<leader>gm', ':Gmove<Space>' },
+      -- { '<leader>gbl', ':G blame<CR>' },
+      -- { '<leader>go', ':G checkout<Space>' },
+      -- { '<leader>gps', ':Dispatch! git push<CR>' },
+      -- { '<leader>gpl', ':Dispatch! git pull<CR>' },
+    },
     config = function()
-      vim.keymap.set('n', '<leader>gs', ':G<CR>')
-      vim.keymap.set('n', '<leader>gh', ':diffget //3<CR>')
-      vim.keymap.set('n', '<leader>gu', ':diffget //2<CR>')
-      vim.keymap.set('n', '<leader>gc', ':GCheckout<CR>')
-      vim.keymap.set('n', '<leader>ga', ':G add %:p<CR><CR>')
-      vim.keymap.set('n', '<leader>gc', ':G commit -v -q<CR>')
-      vim.keymap.set('n', '<leader>gt', ':G commit -v -q %:p<CR>')
-      vim.keymap.set('n', '<leader>gff', ':G ff<CR>')
-      vim.keymap.set('n', '<leader>gfo', ':G fetch origin<CR>')
-      vim.keymap.set('n', '<leader>gd', ':Gdiff<CR>')
-      vim.keymap.set('n', '<leader>ge', ':Gedit<CR>')
-      vim.keymap.set('n', '<leader>gr', ':Gread<CR>')
-      vim.keymap.set('n', '<leader>grb', ':G rebase -i<CR>')
-      vim.keymap.set('n', '<leader>gw', ':Gwrite<CR><CR>')
-      vim.keymap.set('n', '<leader>gl', ':silent! Glog<CR>:bot copen<CR>')
-      vim.keymap.set('n', '<leader>gp', ':Ggrep<Space>')
-      vim.keymap.set('n', '<leader>gm', ':Gmove<Space>')
-      vim.keymap.set('n', '<leader>gbl', ':G blame<CR>')
-      vim.keymap.set('n', '<leader>go', ':G checkout<Space>')
-      vim.keymap.set('n', '<leader>gps', ':Dispatch! git push<CR>')
-      vim.keymap.set('n', '<leader>gpl', ':Dispatch! git pull<CR>')
+      local ThePrimeagen_Fugitive = vim.api.nvim_create_augroup('ThePrimeagen_Fugitive', {})
+
+      local autocmd = vim.api.nvim_create_autocmd
+      autocmd('BufWinEnter', {
+        group = ThePrimeagen_Fugitive,
+        pattern = '*',
+        callback = function()
+          if vim.bo.ft ~= 'fugitive' then
+            return
+          end
+
+          local bufnr = vim.api.nvim_get_current_buf()
+          local opts = { buffer = bufnr, remap = false }
+          vim.keymap.set('n', '<leader>p', function()
+            vim.cmd.Git 'push'
+          end, opts)
+
+          -- rebase always
+          vim.keymap.set('n', '<leader>P', function()
+            vim.cmd.Git { 'pull', '--rebase' }
+          end, opts)
+
+          -- NOTE: It allows me to easily set the branch i am pushing and any tracking
+          -- needed if i did not set the branch up correctly
+          vim.keymap.set('n', '<leader>t', ':Git push -u origin ', opts)
+        end,
+      })
     end,
   },
   { 'github/copilot.vim' },
