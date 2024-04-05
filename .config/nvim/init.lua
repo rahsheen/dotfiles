@@ -283,27 +283,27 @@ require('lazy').setup({
         end, { expr = true })
 
         -- Actions
-        map('n', '<leader>hs', gs.stage_hunk)
-        map('n', '<leader>hr', gs.reset_hunk)
+        map('n', '<leader>hs', gs.stage_hunk, { desc = '[H]unk [S]tage' })
+        map('n', '<leader>hr', gs.reset_hunk, { desc = '[H]unk [R]eset' })
         map('v', '<leader>hs', function()
           gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end)
+        end, { desc = '[H]unk [S]tage' })
         map('v', '<leader>hr', function()
           gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-        end)
-        map('n', '<leader>hS', gs.stage_buffer)
-        map('n', '<leader>hu', gs.undo_stage_hunk)
-        map('n', '<leader>hR', gs.reset_buffer)
-        map('n', '<leader>hp', gs.preview_hunk)
+        end, { desc = '[H]unk [R]eset' })
+        map('n', '<leader>hS', gs.stage_buffer, { desc = '[S]tage Buffer' })
+        map('n', '<leader>hu', gs.undo_stage_hunk, { desc = '[H]unk [U]ndo Stage' })
+        map('n', '<leader>hR', gs.reset_buffer, { desc = '[R]eset Buffer' })
+        map('n', '<leader>hp', gs.preview_hunk, { desc = '[H]unk [P]review' })
         map('n', '<leader>hb', function()
           gs.blame_line { full = true }
-        end)
-        map('n', '<leader>tb', gs.toggle_current_line_blame)
-        map('n', '<leader>hd', gs.diffthis)
+        end, { desc = '[B]lame Line' })
+        map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = '[T]oggle [B]lame' })
+        map('n', '<leader>hd', gs.diffthis, { desc = '[D]iff This' })
         map('n', '<leader>hD', function()
           gs.diffthis '~'
-        end)
-        map('n', '<leader>td', gs.toggle_deleted)
+        end, { desc = '[D]iff [T]his' })
+        map('n', '<leader>td', gs.toggle_deleted, { desc = '[T]oggle [D]eleted' })
 
         -- Text object
         map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')

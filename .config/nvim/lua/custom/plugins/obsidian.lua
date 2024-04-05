@@ -30,7 +30,7 @@ return {
     },
   },
   keys = {
-    { '<leader>ox', ':ObsidianExtractNote', desc = '[O]bsidian E[x]ract Note' },
+    { '<leader>ox', ':ObsidianExtractNote', mode = 'v', desc = '[O]bsidian E[x]ract Note' },
     { '<leader>on', ':ObsidianNew', desc = '[O]bsidian [N]ew Note' },
     { '<leader>od', ':ObsidianToday', desc = '[O]bsidian [T]oday' },
     { '<leader>ost', ':ObsidianTemplate', desc = '[O]bsidian [T]emplate' },
