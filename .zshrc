@@ -43,8 +43,9 @@ EOF
 else
    source "$HOME/antigen/antigen.zsh"
 
-   antigen bundle zsh-users/zsh-autosuggestions
    antigen use oh-my-zsh
+
+   antigen bundle zsh-users/zsh-autosuggestions
    antigen bundle arialdomartini/oh-my-git
    antigen theme arialdomartini/oh-my-git-themes oppa-lana-style
    antigen apply

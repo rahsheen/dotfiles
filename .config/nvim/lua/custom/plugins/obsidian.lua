@@ -11,29 +11,31 @@ return {
   --   "BufNewFile path/to/my-vault/**.md",
   -- },
   dependencies = {
-    -- Required.
     'nvim-lua/plenary.nvim',
-
-    -- see below for full list of optional dependencies 👇
+    'hrsh7th/nvim-cmp',
+    'nvim-telescope/telescope.nvim',
   },
   opts = {
+    picker = { name = 'telescope.nvim' },
     workspaces = {
       {
-        name = 'personal',
+        name = 'primary',
         path = '~/Dropbox/Obsidian',
       },
     },
     templates = {
-      subdir = 'Zettelkasten/Templates/',
+      subdir = 'Templates',
       date_format = '%Y-%m-%d-%a',
       time_format = '%H:%M',
     },
   },
   keys = {
-    { '<leader>ox', ':ObsidianExtractNote', mode = 'v', desc = '[O]bsidian E[x]ract Note' },
-    { '<leader>on', ':ObsidianNew', desc = '[O]bsidian [N]ew Note' },
-    { '<leader>od', ':ObsidianToday', desc = '[O]bsidian [T]oday' },
-    { '<leader>ost', ':ObsidianTemplate', desc = '[O]bsidian [T]emplate' },
-    { '<leader>so', '<cmd>ObsidianSearch<CR>', desc = '[O]bsidian [S]earch' },
+    { '<leader>ox', ':ObsidianExtractNote<CR>', mode = 'v', desc = '[O]bsidian E[x]ract Note' },
+    { '<leader>ol', ':ObsidianLink<CR>', mode = 'v', desc = '[O]bsidian [L]ink' },
+    { '<leader>on', ':ObsidianNew<CR>', desc = '[O]bsidian [N]ew Note' },
+    { '<leader>od', ':ObsidianToday<CR>', desc = '[O]bsidian [T]oday' },
+    { '<leader>oy', ':ObsidianYesterday<CR>', desc = '[O]bsidian [Y]esterday' },
+    { '<leader>ost', ':ObsidianTemplate<CR>', desc = '[O]bsidian [T]emplate' },
+    { '<leader>so', ':ObsidianSearch<CR>', desc = '[O]bsidian [S]earch' },
   },
 }
