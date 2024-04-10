@@ -1,7 +1,7 @@
 # This is Git's per-user configuration file.
 [user]
 	name = Rahsheen Porter
-	email = rahsheen.porter@thirtymadison.com
+	email = rahsheen.porter@gmail.com
 [alias]
   co = checkout
   ph = push -u origin HEAD
