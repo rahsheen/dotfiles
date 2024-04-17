@@ -99,7 +99,3 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
-alias vimconfig="cd $HOME/.config && GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
-alias asdfg="setxkbmap -option ctrl:nocaps dvorak"
-alias aoeu="setxkbmap -option ctrl:nocaps us"

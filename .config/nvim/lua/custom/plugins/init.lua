@@ -91,7 +91,7 @@ return {
       -- { '<leader>gl', ':silent! Glog<CR>:bot copen<CR>' },
       -- { '<leader>gp', ':Ggrep<Space>' },
       -- { '<leader>gm', ':Gmove<Space>' },
-      -- { '<leader>gbl', ':G blame<CR>' },
+      { '<leader>gbl', ':G blame<CR>' },
       -- { '<leader>go', ':G checkout<Space>' },
       -- { '<leader>gps', ':Dispatch! git push<CR>' },
       -- { '<leader>gpl', ':Dispatch! git pull<CR>' },

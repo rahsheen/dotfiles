@@ -1,6 +1,3 @@
-local Remap = require 'rahcodes.keymap'
-local nmap = Remap.nmap
-
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
@@ -44,14 +41,11 @@ vim.keymap.set('v', '<leader>yy', '"+y')
 vim.keymap.set('n', '<C-f>', '<cmd>silent !tmux neww tmux-sessionizer<CR>')
 
 -- Move buffers
-nmap('sp', ':bprev<Return>')
-nmap('sn', ':bnext<Return>')
+vim.keymap.set('n', 'sp', ':bprev<Return>')
+vim.keymap.set('n', 'sn', ':bnext<Return>')
 
 -- Quickfix list navigation
 -- vim.keymap.set('n', '<C-k>', '<cmd>cnext<CR>zz')
 -- vim.keymap.set('n', '<C-j>', '<cmd>cprev<CR>zz')
--- vim.keymap.set('n', '<leader>k', '<cmd>lnext<CR>zz')
--- vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
-
--- Save
-nmap('<C-s>', ':wa<CR>')
+vim.keymap.set('n', '<leader>k', '<cmd>lnext<CR>zz')
+vim.keymap.set('n', '<leader>j', '<cmd>lprev<CR>zz')
