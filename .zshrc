@@ -99,3 +99,41 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
+alias vimconfig="cd $HOME/.config && GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
+alias asdfg="setxkbmap -option ctrl:nocaps dvorak"
+alias aoeu="setxkbmap -option ctrl:nocaps us"
+
+setopt no_share_history
+unsetopt share_history
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+PATH=$PATH:$ANDROID_SDK_ROOT/emulator
+PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
+export PATH
+
+# initialise completions with ZSH's compinit
+# autoload -Uz compinit && compinit
+
+[[ /usr/local/bin/kubectl ]] && source <(kubectl completion zsh)
+[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
+if [ ! -f ~/.fzf.zsh ]; then 
+    cat<<EOF 
+    FZF Not installed!
+
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install
+EOF
+else
+    source ~/.fzf.zsh
+fi
