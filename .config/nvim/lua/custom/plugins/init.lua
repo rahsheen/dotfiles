@@ -65,7 +65,28 @@ return {
           { '<leader>sga', ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>", desc = 'Live Grep (Args)' },
         },
         config = function()
-          require('telescope').load_extension 'live_grep_args'
+          local lga_actions = require 'telescope-live-grep-args.actions'
+
+          require('telescope').setup {
+            extensions = {
+              live_grep_args = {
+                auto_quoting = true, -- enable/disable auto-quoting
+                -- define mappings, e.g.
+                mappings = { -- extend mappings
+                  i = {
+                    ['<C-k>'] = lga_actions.quote_prompt(),
+                    ['<C-i>'] = lga_actions.quote_prompt { postfix = ' --iglob ' },
+                  },
+                },
+                -- ... also accepts theme settings, for example:
+                -- theme = "dropdown", -- use dropdown theme
+                -- theme = { }, -- use own theme spec
+                -- layout_config = { mirror=true }, -- mirror preview pane
+              },
+            },
+          }
+
+          pcall(require('telescope').load_extension, 'live_grep_args')
         end,
       },
     },
@@ -91,7 +112,7 @@ return {
       -- { '<leader>gl', ':silent! Glog<CR>:bot copen<CR>' },
       -- { '<leader>gp', ':Ggrep<Space>' },
       -- { '<leader>gm', ':Gmove<Space>' },
-      { '<leader>gbl', ':G blame<CR>' },
+      { '<leader>gb', ':G blame<CR>' },
       -- { '<leader>go', ':G checkout<Space>' },
       -- { '<leader>gps', ':Dispatch! git push<CR>' },
       -- { '<leader>gpl', ':Dispatch! git pull<CR>' },
@@ -116,7 +137,11 @@ return {
 
           -- rebase always
           vim.keymap.set('n', '<leader>P', function()
-            vim.cmd.Git { 'pull', '--rebase' }
+            vim.cmd.Git 'pull --rebase'
+          end, opts)
+
+          vim.keymap.set('n', '<leader>f', function()
+            vim.cmd.Git 'fetch origin'
           end, opts)
 
           -- NOTE: It allows me to easily set the branch i am pushing and any tracking

@@ -19,17 +19,26 @@ return {
 
       Worktree.on_tree_change(function(op, metadata)
         if op == Worktree.Operations.Switch then
+          -- Delete all buffers except the current one
+          local bufs = vim.api.nvim_list_bufs()
+          local current_buf = vim.api.nvim_get_current_buf()
+          for _, i in ipairs(bufs) do
+            if i ~= current_buf then
+              vim.api.nvim_buf_delete(i, {})
+            end
+          end
+
           print('Switched from ' .. metadata.prev_path .. ' to ' .. metadata.path)
         end
       end)
     end,
     keys = {
       {
-        '<leader>bw',
+        '<leader>gw',
         function()
           require('telescope').extensions.git_worktree.git_worktrees()
         end,
-        desc = '[B]rowse Git Worktrees',
+        desc = '[G]it [W]orktrees',
       },
       {
         '<leader>cw',
