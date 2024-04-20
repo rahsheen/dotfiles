@@ -20,7 +20,7 @@ return {
     workspaces = {
       {
         name = 'primary',
-        path = '~/Dropbox/Obsidian',
+        path = '~/mnt/dropbox/Obsidian',
       },
     },
     templates = {
