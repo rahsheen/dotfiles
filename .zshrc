@@ -117,6 +117,7 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+PATH="$PATH:/opt/nvim-linux64/bin"
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 PATH=$PATH:$ANDROID_SDK_ROOT/emulator
 PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
