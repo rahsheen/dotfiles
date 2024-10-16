@@ -45,8 +45,8 @@ sudo apt update
 sudo apt install -y tmux
 
 # Install FZF
-if [[ -z `command -v nvim` ]]; then
-git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
+if [[ -z `command -v fzf` ]]; then
+  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+  ~/.fzf/install
+  [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+fi
