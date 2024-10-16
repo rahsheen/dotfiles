@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Clone dotfiles
+# Clone dotfiles as bare repo
+#
 # git clone --bare https://github.com/rahsheen/dotfiles.git $HOME/.cfg
 # function config {
 #    /usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME $@
@@ -16,7 +17,11 @@
 # config checkout
 # config config status.showUntrackedFiles no
 
-# Install Neovim
+# Copy dotfiles when initializing codespaces/coder environment
+cp -a .config/* $HOME/.config
+cp .tmux* $HOME
+
+# Install latest Neovim
 if [[ -z `command -v nvim` ]]; then
   unameOut="$(uname -s)"
 
@@ -40,6 +45,8 @@ sudo apt update
 sudo apt install -y tmux
 
 # Install FZF
+if [[ -z `command -v nvim` ]]; then
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 ~/.fzf/install
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
