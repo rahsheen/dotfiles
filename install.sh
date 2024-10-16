@@ -30,13 +30,13 @@ if [[ -z `command -v nvim` ]]; then
       curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
       sudo rm -rf /opt/nvim
       sudo tar -C /opt -xzf nvim-linux64.tar.gz
-      export PATH="$PATH:/opt/nvim-linux64/bin" ;;
+      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc ;;
     Darwin*)   
       curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-arm64.tar.gz
       tar xzf nvim-macos-arm64.tar.gz
       mkdir -p $HOME/.local/bin
       cp nvim-macos-arm64/bin/nvim $HOME/.local/bin
-      export PATH="$PATH:$HOME/.local/bin" ;;
+      echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc ;;
   esac
 fi
 
@@ -50,3 +50,4 @@ if [[ -z `command -v fzf` ]]; then
   ~/.fzf/install
   [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 fi
+
