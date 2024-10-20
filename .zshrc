@@ -64,13 +64,16 @@ ZSH_THEME="robbyrussell"
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git asdf)
+plugins=(git asdf pyenv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -126,7 +129,6 @@ export PATH
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
 
-[[ /usr/local/bin/kubectl ]] && source <(kubectl completion zsh)
 [[ $commands[kubectl] ]] && source <(kubectl completion zsh)
 if [ ! -f ~/.fzf.zsh ]; then 
     cat<<EOF 

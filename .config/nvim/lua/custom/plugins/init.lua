@@ -100,7 +100,7 @@ return {
       { '<leader>gu', ':diffget //2<CR>' },
       -- { '<leader>gc', ':GCheckout<CR>' },
       -- { '<leader>ga', ':G add %:p<CR><CR>' },
-      -- { '<leader>gc', ':G commit -v -q<CR>' },
+      { '<leader>gc', ':G commit -v -q<CR>' },
       -- { '<leader>gt', ':G commit -v -q %:p<CR>' },
       -- { '<leader>gff', ':G ff<CR>' },
       -- { '<leader>gfo', ':G fetch origin<CR>' },
@@ -206,6 +206,15 @@ return {
       vim.keymap.set('n', '<C-s>', function()
         require('harpoon.ui').nav_file(4)
       end, silent)
+    end,
+  },
+  {
+    'supermaven-inc/supermaven-nvim',
+    config = function()
+      require('supermaven-nvim').setup {
+        disable_keymaps = true,
+        disable_inline_completion = true,
+      }
     end,
   },
 }
