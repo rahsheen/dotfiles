@@ -10,7 +10,7 @@ local handlers = {
 lsp.solargraph.setup {
   capabilities = capabilities,
   handlers = handlers,
-  cmd = { os.getenv 'HOME' .. '/.asdf/shims/solargraph', 'stdio' },
+  cmd = { 'solargraph', 'stdio' },
   root_dir = lsp.util.root_pattern('Gemfile', '.git', '.'),
   filetypes = { 'ruby', 'rakefile' },
   settings = {
