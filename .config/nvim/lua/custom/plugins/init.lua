@@ -151,7 +151,12 @@ return {
       })
     end,
   },
-  { 'github/copilot.vim' },
+  {
+    'github/copilot.vim',
+    enabled = function()
+      return os.getenv 'USER' == 'coder' or os.getenv 'USER' == 'rahsheenporter'
+    end,
+  },
   {
     'pmizio/typescript-tools.nvim',
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
@@ -210,6 +215,9 @@ return {
   },
   {
     'supermaven-inc/supermaven-nvim',
+    enabled = function()
+      return os.getenv 'USER' ~= 'coder' and os.getenv 'USER' ~= 'rahsheenporter'
+    end,
     config = function()
       require('supermaven-nvim').setup {
         disable_keymaps = true,
