@@ -19,6 +19,8 @@
 
 # Copy dotfiles when initializing codespaces/coder environment
 cp -a .config/* $HOME/.config
+mkdir -p $HOME/.local/bin
+cp -a .local/bin/* $HOME/.local/bin
 cp .tmux* $HOME
 
 # Install stuff based on OS
