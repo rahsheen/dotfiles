@@ -21,7 +21,7 @@
 cp -a .config/* $HOME/.config
 cp .tmux* $HOME
 
-# Install latest Neovim
+# Install stuff based on OS
 if [[ -z `command -v nvim` ]]; then
   unameOut="$(uname -s)"
 
@@ -31,7 +31,11 @@ if [[ -z `command -v nvim` ]]; then
       sudo rm -rf /opt/nvim
       sudo tar -C /opt -xzf nvim-linux64.tar.gz
       export PATH=$PATH:/opt/nvim-linux64/bin
-      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc ;;
+      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc
+
+      # Install TMUX
+      sudo apt update
+      sudo apt install -y tmux ripgrep fd-find;;
     Darwin*)   
       curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-arm64.tar.gz
       tar xzf nvim-macos-arm64.tar.gz
@@ -39,12 +43,10 @@ if [[ -z `command -v nvim` ]]; then
       cp nvim-macos-arm64/bin/nvim $HOME/.local/bin
       export PATH=$PATH:$HOME/.local/bin
       echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc ;;
-  esac
-fi
 
-# Install TMUX
-sudo apt update
-sudo apt install -y tmux ripgrep
+      brew install tmux ripgrep fd
+   esac
+fi
 
 # Install FZF
 if [[ -z `command -v fzf` ]]; then

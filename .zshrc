@@ -8,7 +8,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="bira"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -73,7 +73,7 @@ eval "$(pyenv init --path)"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git asdf pyenv)
+plugins=(git asdf pyenv fzf kubectl)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,9 +103,7 @@ fi
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
-alias vimconfig="cd $HOME/.config && GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
-alias asdfg="setxkbmap -option ctrl:nocaps dvorak"
-alias aoeu="setxkbmap -option ctrl:nocaps us"
+alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
 
 setopt no_share_history
 unsetopt share_history
@@ -115,12 +113,11 @@ if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
 
-# set PATH so it includes user's private bin if it exists
+# set PATH so it includes user's local private bin if it exists
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-PATH="$PATH:/opt/nvim-linux64/bin"
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 PATH=$PATH:$ANDROID_SDK_ROOT/emulator
 PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
@@ -128,15 +125,3 @@ export PATH
 
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
-
-[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
-if [ ! -f ~/.fzf.zsh ]; then 
-    cat<<EOF 
-    FZF Not installed!
-
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install
-EOF
-else
-    source ~/.fzf.zsh
-fi
