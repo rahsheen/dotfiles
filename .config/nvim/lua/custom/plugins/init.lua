@@ -62,7 +62,7 @@ return {
         -- For major updates, this must be adjusted manually.
         version = '^1.0.0',
         keys = {
-          { '<leader>sga', ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>", desc = 'Live Grep (Args)' },
+          { '<leader>sa', ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>", desc = 'Live Grep (Args)' },
         },
         config = function()
           local lga_actions = require 'telescope-live-grep-args.actions'
@@ -153,9 +153,22 @@ return {
   },
   {
     'github/copilot.vim',
-    enabled = function()
-      return os.getenv 'USER' == 'coder' or os.getenv 'USER' == 'rahsheenporter'
-    end,
+    -- enabled = function()
+    --   return os.getenv 'USER' == 'coder' or os.getenv 'USER' == 'rahsheenporter'
+    -- end,
+  },
+  {
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    dependencies = {
+      { 'github/copilot.vim' }, -- or zbirenbaum/copilot.lua
+      { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
+    },
+    build = 'make tiktoken', -- Only on MacOS or Linux
+    opts = {
+      -- See Configuration section for options
+    },
+    -- See Commands section for default commands if you want to lazy load on them
   },
   {
     'pmizio/typescript-tools.nvim',
@@ -213,16 +226,16 @@ return {
       end, silent)
     end,
   },
-  {
-    'supermaven-inc/supermaven-nvim',
-    enabled = function()
-      return os.getenv 'USER' ~= 'coder' and os.getenv 'USER' ~= 'rahsheenporter'
-    end,
-    config = function()
-      require('supermaven-nvim').setup {
-        disable_keymaps = true,
-        disable_inline_completion = true,
-      }
-    end,
-  },
+  -- {
+  --   'supermaven-inc/supermaven-nvim',
+  --   enabled = function()
+  --     return os.getenv 'USER' ~= 'coder' and os.getenv 'USER' ~= 'rahsheenporter'
+  --   end,
+  --   config = function()
+  --     require('supermaven-nvim').setup {
+  --       disable_keymaps = true,
+  --       disable_inline_completion = true,
+  --     }
+  --   end,
+  -- },
 }
