@@ -44,9 +44,9 @@ if [[ -z `command -v nvim` ]]; then
       mkdir -p $HOME/.local/bin
       cp nvim-macos-arm64/bin/nvim $HOME/.local/bin
       export PATH=$PATH:$HOME/.local/bin
-      echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc ;;
+      echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
 
-      brew install tmux ripgrep fd
+      brew install tmux ripgrep fd;;
    esac
 fi
 
