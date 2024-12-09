@@ -515,6 +515,14 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
+        ruby_lsp = {
+          mason = false,
+          root_dir = function(fname)
+            return require('lspconfig').util.root_pattern('Gemfile', '.git')(fname) or vim.fn.getcwd()
+          end,
+          filetypes = { 'ruby', 'rakefile' },
+          cmd = { vim.fn.expand '~/.asdf/shims/ruby-lsp' },
+        },
         --
 
         lua_ls = {
@@ -550,7 +558,7 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        automatic_installation = { exclude = { 'solargraph' } },
+        automatic_installation = { exclude = { 'solargraph', 'ruby_lsp' } },
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -832,6 +840,5 @@ require('lazy').setup({
 
 require 'rahcodes.remap'
 require 'rahcodes.sets'
-require 'rahcodes.solargraph'
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

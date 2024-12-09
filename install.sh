@@ -57,6 +57,3 @@ if [[ -z `command -v fzf` ]]; then
 
   source ~/.fzf.zsh
 fi
-
-gem install solargraph
-
