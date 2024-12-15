@@ -158,19 +158,6 @@ return {
     -- end,
   },
   {
-    'CopilotC-Nvim/CopilotChat.nvim',
-    branch = 'canary',
-    dependencies = {
-      { 'github/copilot.vim' }, -- or zbirenbaum/copilot.lua
-      { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
-    },
-    build = 'make tiktoken', -- Only on MacOS or Linux
-    opts = {
-      -- See Configuration section for options
-    },
-    -- See Commands section for default commands if you want to lazy load on them
-  },
-  {
     'pmizio/typescript-tools.nvim',
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
     opts = {},
@@ -224,6 +211,24 @@ return {
       vim.keymap.set('n', '<C-s>', function()
         require('harpoon.ui').nav_file(4)
       end, silent)
+    end,
+  },
+  {
+    'nvim-neotest/neotest',
+    lazy = true,
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-treesitter/nvim-treesitter',
+      'olimorris/neotest-rspec',
+    },
+    config = function()
+      require('neotest').setup {
+        adapters = {
+          require 'neotest-rspec',
+        },
+      }
     end,
   },
   -- {
