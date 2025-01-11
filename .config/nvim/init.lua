@@ -522,7 +522,7 @@ require('lazy').setup({
             return require('lspconfig').util.root_pattern('Gemfile', '.git')(fname) or vim.fn.getcwd()
           end,
           filetypes = { 'ruby', 'rakefile' },
-          cmd = { vim.fn.expand '~/.asdf/shims/ruby-lsp' },
+          cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
         },
         --
 
