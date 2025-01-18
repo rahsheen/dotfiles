@@ -645,6 +645,8 @@ require('lazy').setup({
           },
         },
       }
+
+      vim.cmd.colorscheme 'catppuccin'
     end,
   },
   -- Highlight todo, notes, etc in comments
@@ -692,7 +694,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'markdown_inline', 'vim', 'vimdoc' },
+      ensure_installed = { 'ruby', 'bash', 'c', 'html', 'lua', 'markdown', 'markdown_inline', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = { enable = true },
