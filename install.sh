@@ -23,9 +23,18 @@ mkdir -p $HOME/.local/bin
 cp -a .local/bin/* $HOME/.local/bin
 cp .tmux* $HOME
 
+# Add local bin to path
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+  echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
+  export PATH="$PATH:$HOME/.local/bin"
+fi
+# echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
+# export PATH=$PATH:$HOME/.local/bin
+
+unameOut="$(uname -s)"
+
 # Install stuff based on OS
 if [[ -z `command -v nvim` ]]; then
-  unameOut="$(uname -s)"
 
   case "${unameOut}" in
     Linux*)     
@@ -33,24 +42,26 @@ if [[ -z `command -v nvim` ]]; then
       sudo rm -rf /opt/nvim
       sudo tar -C /opt -xzf nvim-linux64.tar.gz
       export PATH=$PATH:/opt/nvim-linux64/bin
-      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc
-
-      # Install TMUX
-      sudo apt update
-      sudo apt install -y tmux ripgrep fd-find;;
+      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc;;
     Darwin*)   
       curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-arm64.tar.gz
       tar xzf nvim-macos-arm64.tar.gz
-      mkdir -p $HOME/.local/bin
-      cp nvim-macos-arm64/bin/nvim $HOME/.local/bin
-      export PATH=$PATH:$HOME/.local/bin
-      echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
-
-      brew install tmux ripgrep fd;;
+      cp nvim-macos-arm64/bin/nvim $HOME/.local/bin;;
    esac
 fi
 
-# Install FZF
+# Install tmux, ripgrep, and fd if not installed based on unameOut above
+if [[ -z `command -v tmux` ]]; then
+  case "${unameOut}" in
+    Linux*)
+      sudo apt update
+      sudo apt install -y tmux ripgrep fd-find;;
+    Darwin*)
+      brew install tmux ripgrep fd;;
+  esac
+fi
+
+# Install FZF if missing
 if [[ -z `command -v fzf` ]]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
   ~/.fzf/install
