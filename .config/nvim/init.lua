@@ -517,15 +517,12 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         -- tsserver = {},
         ruby_lsp = {
-          mason = false,
           root_dir = function(fname)
             return require('lspconfig').util.root_pattern('Gemfile', '.git')(fname) or vim.fn.getcwd()
           end,
           filetypes = { 'ruby', 'rakefile' },
           cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
         },
-        --
-
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -540,6 +537,10 @@ require('lazy').setup({
             },
           },
         },
+        eslint_lsp = {
+          root_dir = require('lspconfig/util').root_pattern('.eslintrc.js', '.eslintrc.json', '.eslintrc', 'eslint.config.js'),
+          filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
+        },
       }
 
       -- Ensure the servers and tools above are installed
@@ -552,14 +553,14 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
+      local ensure_installed = {} -- vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
-        automatic_installation = { exclude = { 'solargraph', 'ruby_lsp' } },
+        automatic_installation = false,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -574,6 +575,8 @@ require('lazy').setup({
           end,
         },
       }
+
+      require('lspconfig')['gdscript'].setup { name = 'godot' }
     end,
   },
 

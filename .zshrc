@@ -125,3 +125,4 @@ export PATH
 
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
+export PATH=$PATH:/Users/rahsheen/.local/bin
