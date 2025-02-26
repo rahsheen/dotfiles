@@ -5,7 +5,7 @@ return {
     lazy = false,
     version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
     opts = {
-      provider = 'copilot',
+      provider = 'deepseek-coder',
       vendors = {
         ---@type AvanteProvider
         ollama = {
@@ -94,7 +94,7 @@ return {
     },
   },
   {
-    -- 'github/copilot.vim',
+    'github/copilot.vim',
     -- enabled = function()
     --   return os.getenv 'user' == 'coder' or os.getenv 'user' == 'rahsheenporter'
     -- end,
