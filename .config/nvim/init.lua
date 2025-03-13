@@ -577,6 +577,7 @@ require('lazy').setup({
       }
 
       require('lspconfig')['gdscript'].setup { name = 'godot' }
+      require('lspconfig')['ruby_lsp'].setup(servers['ruby_lsp'])
     end,
   },
 
