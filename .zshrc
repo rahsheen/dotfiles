@@ -73,7 +73,7 @@ eval "$(pyenv init --path)"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git asdf pyenv fzf kubectl)
+plugins=(git pyenv fzf kubectl)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -126,3 +126,7 @@ export PATH
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
 export PATH=$PATH:/Users/rahsheen/.local/bin
+
+# Add asdf shims to PATH
+export ASDF_DATA_DIR="$HOME/.asdf"
+export PATH="$ASDF_DATA_DIR/shims:$PATH"

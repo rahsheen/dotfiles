@@ -28,37 +28,52 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
   export PATH="$PATH:$HOME/.local/bin"
 fi
-# echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc
-# export PATH=$PATH:$HOME/.local/bin
 
+add_git_alias() {
+  local alias_name="$1"
+  local git_command="$2"
+
+  if git config --global --get "alias.$alias_name" > /dev/null; then
+    echo "Git alias '$alias_name' already exists."
+    return
+  else
+    echo "Adding git alias '$alias_name' for '$git_command'."
+    git config --global "alias.$alias_name" "$git_command"
+  fi
+}
+
+# Example usage:
+add_git_alias "co" "checkout"
+add_git_alias "ff" "pull --ff-only"
+add_git_alias "br" "branch"
+add_git_alias "st" "status"
+add_git_alias "lg" "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+# Get the OS type
 unameOut="$(uname -s)"
 
 # Install stuff based on OS
-if [[ -z `command -v nvim` ]]; then
+case "${unameOut}" in
+  Linux*)     
+    sudo apt install -y tmux ripgrep fd-find
 
-  case "${unameOut}" in
-    Linux*)     
-      curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-      sudo rm -rf /opt/nvim
-      sudo tar -C /opt -xzf nvim-linux64.tar.gz
-      export PATH=$PATH:/opt/nvim-linux64/bin
-      echo "export PATH=\$PATH:/opt/nvim-linux64/bin" >> $HOME/.zshrc;;
-    Darwin*)   
-      curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-arm64.tar.gz
-      tar xzf nvim-macos-arm64.tar.gz
-      cp nvim-macos-arm64/bin/nvim $HOME/.local/bin;;
-   esac
-fi
+    if [[ -z `command -v asdf` ]]; then
+      curl -LO https://github.com/asdf-vm/asdf/releases/download/v0.16.6/asdf-v0.16.6-linux-amd64.tar.gz
+      tar xzf asdf-v0.16.6-linux-amd64.tar.gz -C $HOME/.local/bin
+    fi;;
+  Darwin*)   
+    brew install tmux ripgrep fd
 
-# Install tmux, ripgrep, and fd if not installed based on unameOut above
-if [[ -z `command -v tmux` ]]; then
-  case "${unameOut}" in
-    Linux*)
-      sudo apt update
-      sudo apt install -y tmux ripgrep fd-find;;
-    Darwin*)
-      brew install tmux ripgrep fd;;
-  esac
+    if [[ -z `command -v asdf` ]]; then
+      curl -LO https://github.com/asdf-vm/asdf/releases/download/v0.16.6/asdf-v0.16.6-darwin-arm64.tar.gz
+      tar xzf asdf-v0.16.6-darwin-arm64.tar.gz -C $HOME/.local/bin
+    fi;;
+ esac
+
+# Install asdf plugins
+if [[ -z `command -v neovim` ]]; then
+  asdf plugin add neovim
+  asdf install neovim nightly
 fi
 
 # Install FZF if missing
