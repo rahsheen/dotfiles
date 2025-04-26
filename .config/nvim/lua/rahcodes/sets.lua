@@ -25,3 +25,4 @@ vim.opt.colorcolumn = '80'
 vim.opt.mouse = 'v'
 
 vim.opt.conceallevel = 2
+vim.opt.laststatus = 3
