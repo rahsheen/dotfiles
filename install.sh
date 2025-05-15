@@ -22,6 +22,7 @@ cp -a .config/* $HOME/.config
 mkdir -p $HOME/.local/bin
 cp -a .local/bin/* $HOME/.local/bin
 cp .tmux* $HOME
+cp .tool-versions $HOME
 
 # Add local bin to path
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
