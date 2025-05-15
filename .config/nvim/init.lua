@@ -520,8 +520,10 @@ require('lazy').setup({
           root_dir = function(fname)
             return require('lspconfig').util.root_pattern('Gemfile', '.git')(fname) or vim.fn.getcwd()
           end,
-          filetypes = { 'ruby', 'rakefile' },
-          cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
+          filetypes = { 'ruby', 'rakefile', 'Guardfile' },
+          -- Relying on Mason to install, but may need to be manually re-installed
+          -- via Mason within a relevant project in some cases if Ruby version doesn't match
+          -- cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
         },
         lua_ls = {
           -- cmd = {...},
@@ -537,10 +539,11 @@ require('lazy').setup({
             },
           },
         },
-        eslint_lsp = {
+        eslint = {
           root_dir = require('lspconfig/util').root_pattern('.eslintrc.js', '.eslintrc.json', '.eslintrc', 'eslint.config.js'),
           filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
         },
+        jsonls = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -553,13 +556,14 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = {} -- vim.tbl_keys(servers or {})
+      local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
+        ensure_installed = {}, -- explicitly set to an empty table (we populate installs via mason-tool-installer)
         automatic_installation = false,
         handlers = {
           function(server_name)
@@ -576,8 +580,8 @@ require('lazy').setup({
         },
       }
 
-      require('lspconfig')['gdscript'].setup { name = 'godot' }
-      require('lspconfig')['ruby_lsp'].setup(servers['ruby_lsp'])
+      -- require('lspconfig')['gdscript'].setup { name = 'godot' }
+      -- require('lspconfig')['ruby_lsp'].setup(servers['ruby_lsp'])
     end,
   },
 

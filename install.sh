@@ -74,7 +74,7 @@ case "${unameOut}" in
 # Install asdf plugins
 if [[ -z `command -v neovim` ]]; then
   asdf plugin add neovim
-  asdf install neovim nightly
+  asdf install neovim stable
 fi
 
 # Install FZF if missing
