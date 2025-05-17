@@ -1,11 +1,21 @@
 return {
   {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {}
+    end,
+  },
+  {
     'yetone/avante.nvim',
     event = 'VeryLazy',
-    lazy = false,
-    version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
+    lazy = true,
+    -- version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
+    commit = 'f9aa754',
     opts = {
       provider = 'copilot',
+      auto_suggestions_provider = nil,
       -- vendors = {
       --   ---@type AvanteProvider
       --   ollama = {
@@ -65,7 +75,7 @@ return {
       'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
       'ibhagwan/fzf-lua', -- for file_selector provider fzf
       'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-      'github/copilot.vim', -- for providers='copilot'
+      'zbirenbaum/copilot.lua',
       {
         -- support for image pasting
         'HakonHarnes/img-clip.nvim',
