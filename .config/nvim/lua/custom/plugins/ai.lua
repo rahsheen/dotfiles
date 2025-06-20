@@ -9,64 +9,25 @@ return {
   },
   {
     'yetone/avante.nvim',
-    event = 'VeryLazy',
-    lazy = true,
-    -- version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
-    commit = 'f9aa754',
-    opts = {
-      provider = 'copilot',
-      auto_suggestions_provider = nil,
-      -- vendors = {
-      --   ---@type AvanteProvider
-      --   ollama = {
-      --     api_key_name = '',
-      --     ask = '',
-      --     endpoint = 'http://localhost:11434/api',
-      --     model = 'deepseek-coder:33b',
-      --     parse_curl_args = function(opts, code_opts)
-      --       return {
-      --         url = opts.endpoint .. '/chat',
-      --         headers = {
-      --           ['Accept'] = 'application/json',
-      --           ['Content-Type'] = 'application/json',
-      --         },
-      --         body = {
-      --           model = opts.model,
-      --           options = {
-      --             num_ctx = 16384,
-      --           },
-      --           messages = require('avante.providers').copilot.parse_messages(code_opts), -- you can make your own message, but this is very advanced
-      --           stream = true,
-      --         },
-      --       }
-      --     end,
-      --     parse_stream_data = function(data, handler_opts)
-      --       -- Parse the JSON data
-      --       local json_data = vim.fn.json_decode(data)
-      --       -- Check for stream completion marker first
-      --       if json_data and json_data.done then
-      --         handler_opts.on_complete(nil) -- Properly terminate the stream
-      --         return
-      --       end
-      --       -- Process normal message content
-      --       if json_data and json_data.message and json_data.message.content then
-      --         -- Extract the content from the message
-      --         local content = json_data.message.content
-      --         -- Call the handler with the content
-      --         handler_opts.on_chunk(content)
-      --       end
-      --     end,
-      --     -- parse_response_data = function(data_stream, event_state, opts)
-      --     --   require('avante.providers').copilot.parse_response(data_stream, event_state, opts)
-      --     -- end,
-      --   },
-      -- },
-    },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-    build = 'make',
+    build = 'make', -- ⚠️ must add this line! ! !
     -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+    event = 'VeryLazy',
+    version = false, -- Never set this value to "*"! Never!
+    -- commit = 'f9aa754',
+    ---@module 'avante'
+    ---@type avante.Config
+    opts = {
+      ---@alias Provider "claude" | "openai" | "azure" | "gemini" | "cohere" | "copilot" | string
+      ---@type Provider
+      provider = 'copilot',
+      ---@alias Mode "agentic" | "legacy"
+      ---@type Mode
+      mode = 'legacy',
+      auto_suggestions_provider = nil,
+    },
     dependencies = {
-      'stevearc/dressing.nvim',
+      'nvim-treesitter/nvim-treesitter',
       'nvim-lua/plenary.nvim',
       'MunifTanjim/nui.nvim',
       --- The below dependencies are optional,
@@ -74,8 +35,10 @@ return {
       'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
       'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
       'ibhagwan/fzf-lua', -- for file_selector provider fzf
+      'stevearc/dressing.nvim', -- for input provider dressing
+      'folke/snacks.nvim', -- for input provider snacks
       'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
-      'zbirenbaum/copilot.lua',
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
       {
         -- support for image pasting
         'HakonHarnes/img-clip.nvim',
