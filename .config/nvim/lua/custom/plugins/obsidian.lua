@@ -29,6 +29,7 @@ return {
       date_format = '%Y-%m-%d-%a',
       time_format = '%H:%M',
     },
+    ui = { enabled = false },
   },
   keys = {
     { '<leader>ox', ':ObsidianExtractNote<CR>', mode = 'v', desc = '[O]bsidian E[x]ract Note' },

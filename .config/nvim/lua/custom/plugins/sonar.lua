@@ -1,6 +1,33 @@
 return {
   url = 'https://gitlab.com/schrieveslaach/sonarlint.nvim',
-  ft = { 'javascript', 'typescript' },
+  ft = {
+    'javascript',
+    'typescript',
+    'javascriptreact',
+    'typescriptreact',
+    'ruby',
+  },
+  -- Only enable when working at Roadrunner Waste Management
+  enabled = function()
+    local user = os.getenv 'USER'
+    local hostname_cmd_output = io.popen('hostname'):read '*l' -- Capture the raw output
+    local hostname = hostname_cmd_output:gsub('%s+', '') -- Optional: Try to remove all whitespace
+    -- Or, if you suspect only leading/trailing spaces:
+    -- local hostname = hostname_cmd_output:match("^%s*(.-)%s*$")
+
+    local should_enable = user == 'coder' or hostname == 'RR-KY3CNX34RY'
+
+    -- print '--- Debugging Plugin Load ---'
+    -- print("User: '" .. user .. "'")
+    -- print("Hostname (from command, raw): '" .. hostname_cmd_output .. "'")
+    -- print("Hostname (after trim/gsub, for comparison): '" .. hostname .. "'")
+    -- print("Is user 'coder'?: " .. tostring(user == 'coder'))
+    -- print("Is hostname 'RR-KY3CNX34RY'?: " .. tostring(hostname == 'RR-KY3CNX34RY'))
+    -- print("Final 'enabled' decision (should_enable): " .. tostring(should_enable))
+    -- print '--- End Debugging ---'
+
+    return should_enable
+  end,
   config = function()
     require('sonarlint').setup {
       server = {
