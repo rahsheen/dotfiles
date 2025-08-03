@@ -25,6 +25,7 @@ return {
       ---@type Mode
       mode = 'legacy',
       auto_suggestions_provider = nil,
+      hints = { enabled = false },
     },
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
