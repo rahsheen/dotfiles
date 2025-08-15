@@ -325,6 +325,7 @@ require('lazy').setup({
       -- Enable telescope extensions, if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'refactoring')
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -340,6 +341,9 @@ require('lazy').setup({
       -- vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<leader><leader>', builtin.git_files, { desc = '[S]earch [G]it Files' })
       vim.keymap.set('n', '<leader>sb', builtin.git_branches, { desc = '[S]earch Git [B]ranches' })
+      vim.keymap.set({ 'n', 'x' }, '<leader>rr', function()
+        require('telescope').extensions.refactoring.refactors()
+      end)
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -422,8 +426,9 @@ require('lazy').setup({
           --
           -- In this case, we create a function that lets us more easily define mappings specific
           -- for LSP related items. It sets the mode, buffer and description for us each time.
-          local map = function(keys, func, desc)
-            vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+          local map = function(keys, func, desc, mode)
+            mode = mode or 'n'
+            vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
           -- Jump to the definition of the word under your cursor.
@@ -457,7 +462,7 @@ require('lazy').setup({
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'v' })
 
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap
@@ -493,6 +498,14 @@ require('lazy').setup({
       --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('blink.cmp').get_lsp_capabilities({}, false))
+      --
+      -- Ensure all language servers use a consistent offsetEncoding to prevent warnings
+      local common_capabilities = {
+        offsetEncoding = { 'utf-16' },
+      }
+
+      -- Extend the capabilities with the common settings
+      capabilities = vim.tbl_deep_extend('force', capabilities, common_capabilities)
 
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -523,6 +536,17 @@ require('lazy').setup({
           -- Relying on Mason to install, but may need to be manually re-installed
           -- via Mason within a relevant project in some cases if Ruby version doesn't match
           -- cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
+          init_options = {
+            enabledFeatures = {
+              'documentHighlights',
+              'documentSymbols',
+              'foldingRanges',
+              'selectionRanges',
+              'semanticHighlighting',
+              'formatting',
+              'codeActions',
+            },
+          },
         },
         lua_ls = {
           -- cmd = {...},
@@ -733,7 +757,6 @@ require('lazy').setup({
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
-
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
@@ -743,6 +766,21 @@ require('lazy').setup({
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },
+      refactor = {
+        highlight_definitions = {
+          enable = true,
+          -- Set to false if you have an `updatetime` of ~100.
+          clear_on_cursor_move = true,
+        },
+        highlight_current_scope = { enable = true },
+        smart_rename = {
+          enable = true,
+          -- Assign keymaps to false to disable them, e.g. `smart_rename = false`.
+          keymaps = {
+            smart_rename = 'grr',
+          },
+        },
+      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -757,6 +795,9 @@ require('lazy').setup({
       --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-refactor',
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the

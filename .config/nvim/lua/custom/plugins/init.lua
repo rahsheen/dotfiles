@@ -9,44 +9,44 @@ return {
       require('refactoring').setup {}
     end,
   },
-  {
-    'folke/tokyonight.nvim',
-    lazy = false,
-    priority = 1000,
-    opts = {},
-  },
-  {
-    'folke/trouble.nvim',
-    dependencies = 'nvim-tree/nvim-web-devicons',
-    config = function()
-      require('trouble').setup {
-        -- your configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
-        icons = false,
-      }
-
-      -- Trouble bindings
-      vim.keymap.set('n', '<leader>xx', function()
-        require('trouble').open()
-      end)
-      vim.keymap.set('n', '<leader>xw', function()
-        require('trouble').open 'workspace_diagnostics'
-      end)
-      vim.keymap.set('n', '<leader>xd', function()
-        require('trouble').open 'document_diagnostics'
-      end)
-      vim.keymap.set('n', '<leader>xq', function()
-        require('trouble').open 'quickfix'
-      end)
-      vim.keymap.set('n', '<leader>xl', function()
-        require('trouble').open 'loclist'
-      end)
-      vim.keymap.set('n', 'gR', function()
-        require('trouble').open 'lsp_references'
-      end)
-    end,
-  },
+  -- {
+  --   'folke/tokyonight.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   opts = {},
+  -- },
+  -- {
+  --   'folke/trouble.nvim',
+  --   dependencies = 'nvim-tree/nvim-web-devicons',
+  --   config = function()
+  --     require('trouble').setup {
+  --       -- your configuration comes here
+  --       -- or leave it empty to use the default settings
+  --       -- refer to the configuration section below
+  --       icons = false,
+  --     }
+  --
+  --     -- Trouble bindings
+  --     vim.keymap.set('n', '<leader>xx', function()
+  --       require('trouble').open()
+  --     end)
+  --     vim.keymap.set('n', '<leader>xw', function()
+  --       require('trouble').open 'workspace_diagnostics'
+  --     end)
+  --     vim.keymap.set('n', '<leader>xd', function()
+  --       require('trouble').open 'document_diagnostics'
+  --     end)
+  --     vim.keymap.set('n', '<leader>xq', function()
+  --       require('trouble').open 'quickfix'
+  --     end)
+  --     vim.keymap.set('n', '<leader>xl', function()
+  --       require('trouble').open 'loclist'
+  --     end)
+  --     vim.keymap.set('n', 'gR', function()
+  --       require('trouble').open 'lsp_references'
+  --     end)
+  --   end,
+  -- },
   {
     'L3MON4D3/LuaSnip',
     dependencies = { 'rafamadriz/friendly-snippets' },
@@ -167,20 +167,20 @@ return {
     end,
   },
   -- Lua
-  {
-    'folke/zen-mode.nvim',
-    opts = {
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      -- refer to the configuration section below
-    },
-  },
-  {
-    'mbbill/undotree',
-    config = function()
-      vim.keymap.set('n', '<leader>5', vim.cmd.UndotreeToggle)
-    end,
-  },
+  -- {
+  --   'folke/zen-mode.nvim',
+  --   opts = {
+  --     -- your configuration comes here
+  --     -- or leave it empty to use the default settings
+  --     -- refer to the configuration section below
+  --   },
+  -- },
+  -- {
+  --   'mbbill/undotree',
+  --   config = function()
+  --     vim.keymap.set('n', '<leader>5', vim.cmd.UndotreeToggle)
+  --   end,
+  -- },
   {
     'ThePrimeagen/harpoon',
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -212,24 +212,24 @@ return {
       end, silent)
     end,
   },
-  {
-    'nvim-neotest/neotest',
-    lazy = true,
-    dependencies = {
-      'nvim-neotest/nvim-nio',
-      'nvim-lua/plenary.nvim',
-      'antoinemadec/FixCursorHold.nvim',
-      'nvim-treesitter/nvim-treesitter',
-      'olimorris/neotest-rspec',
-    },
-    config = function()
-      require('neotest').setup {
-        adapters = {
-          require 'neotest-rspec',
-        },
-      }
-    end,
-  },
+  -- {
+  --   'nvim-neotest/neotest',
+  --   lazy = true,
+  --   dependencies = {
+  --     'nvim-neotest/nvim-nio',
+  --     'nvim-lua/plenary.nvim',
+  --     'antoinemadec/FixCursorHold.nvim',
+  --     'nvim-treesitter/nvim-treesitter',
+  --     'olimorris/neotest-rspec',
+  --   },
+  --   config = function()
+  --     require('neotest').setup {
+  --       adapters = {
+  --         require 'neotest-rspec',
+  --       },
+  --     }
+  --   end,
+  -- },
   {
     'tpope/vim-rails',
     dependencies = { 'tpope/vim-dispatch', 'tpope/vim-dadbod', 'tpope/vim-abolish', 'tpope/vim-bundler' },
