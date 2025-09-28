@@ -378,10 +378,6 @@ require('lazy').setup({
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
-      -- Useful status updates for LSP.
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
-
       -- `neodev` configures Lua LSP for your Neovim config, runtime and plugins
       -- used for completion, annotations and signatures of Neovim apis
       { 'folke/neodev.nvim', opts = {} },
@@ -543,7 +539,7 @@ require('lazy').setup({
               'foldingRanges',
               'selectionRanges',
               'semanticHighlighting',
-              'formatting',
+              -- 'formatting',
               'codeActions',
             },
           },
@@ -617,7 +613,7 @@ require('lazy').setup({
         function()
           require('conform').format { async = true, lsp_fallback = true }
         end,
-        mode = '',
+        mode = { 'n', 'v' },
         desc = '[F]ormat buffer',
       },
     },
@@ -629,11 +625,30 @@ require('lazy').setup({
         exclude = { 'json' },
       },
       log_level = vim.log.levels.DEBUG,
+      formatters = {
+        rubocop_no_server = {
+          -- Use the user's shell to execute the bundle command (or 'bundle' if in PATH)
+          command = 'rubocop',
+
+          -- FINAL ARGS:
+          args = {
+            '--no-server', -- CRITICAL: Prevents server usage
+            '-a',
+            '-f',
+            'quiet',
+            '--stderr',
+            '--stdin',
+            '$FILENAME',
+          },
+          exit_codes = { 0, 1 },
+        },
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
+        ruby = { 'rubocop_no_server', lsp_fallback = 'never' },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
