@@ -56,14 +56,14 @@ unameOut="$(uname -s)"
 # Install stuff based on OS
 case "${unameOut}" in
   Linux*)     
-    sudo apt install -y tmux ripgrep fd-find
+    sudo apt install -y tmux ripgrep fd-find openjdk-17-jre
 
     if [[ -z `command -v asdf` ]]; then
       curl -LO https://github.com/asdf-vm/asdf/releases/download/v0.16.6/asdf-v0.16.6-linux-amd64.tar.gz
       tar xzf asdf-v0.16.6-linux-amd64.tar.gz -C $HOME/.local/bin
     fi;;
   Darwin*)   
-    brew install tmux ripgrep fd
+    brew install tmux ripgrep fd openjdk@17
 
     if [[ -z `command -v asdf` ]]; then
       curl -LO https://github.com/asdf-vm/asdf/releases/download/v0.16.6/asdf-v0.16.6-darwin-arm64.tar.gz
