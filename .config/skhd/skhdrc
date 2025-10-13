@@ -1,0 +1,28 @@
+# Change window focus
+alt - h : yabai -m window --focus west
+alt - j : yabai -m window --focus south
+alt - k : yabai -m window --focus north
+alt - l : yabai -m window --focus east
+
+# Move windows
+shift + alt - h : yabai -m window --swap west
+shift + alt - j : yabai -m window --swap south
+shift + alt - k : yabai -m window --swap north
+shift + alt - l : yabai -m window --swap east
+
+# Split (horizontal/vertical) - this usually affects how new windows open in a space
+# You might want to experiment with these or use a key to toggle.
+# ctrl + alt - h : yabai -m window --split horizontal
+# ctrl + alt - v : yabai -m window --split vertical
+
+# Reload yabai config (useful after making changes to yabairc)
+cmd + alt - r : yabai --restart-service 
+cmd + alt - s : skhd --restart-service 
+
+# Promote focused window to the "first" position in the current split
+# This often makes it the 'master' on the left (if vertical split) or top (if horizontal split)
+shift + alt - return : yabai -m window --warp first
+
+alt - s : yabai -m window --toggle split
+ctrl + alt - f : yabai -m window --toggle zoom-fullscreen
+
