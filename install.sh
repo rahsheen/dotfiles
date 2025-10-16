@@ -22,6 +22,7 @@ cp -a .config/* $HOME/.config
 mkdir -p $HOME/.local/bin
 cp -a .local/bin/* $HOME/.local/bin
 cp .tmux* $HOME
+cp .zshrc $HOME
 cp .tool-versions $HOME
 
 # Add local bin to path
@@ -70,6 +71,10 @@ case "${unameOut}" in
       tar xzf asdf-v0.16.6-darwin-arm64.tar.gz -C $HOME/.local/bin
     fi;;
  esac
+
+if [[ -z `command -v tmuxinator` ]]; then
+  gem install tmuxinator
+fi
 
 # Install asdf plugins
 if [[ -z `command -v neovim` ]]; then
