@@ -73,7 +73,7 @@ eval "$(pyenv init --path)"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git pyenv fzf kubectl)
+plugins=(git pyenv fzf kubectl coder-tools)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -102,8 +102,15 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias config="/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME"
-alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
+function config {
+    GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" git "$@"
+}
+function vimconfig {
+    GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" nvim "$@"
+}
+compdef _git config
+zstyle ':completion:*' completer _complete _files
+# alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
 
 setopt no_share_history
 unsetopt share_history

@@ -1,0 +1,33 @@
+# ~/.config/tmuxinator/coyote_lyra.yml (or wherever you prefer to save it)
+
+name: coder-dev
+root: /workspaces
+
+windows:
+  # Window 1: Neovim for Coyote
+  - coyote_nvim:
+      root: /workspaces/coyote
+      layout: main-horizontal
+      panes:
+        - nvim .
+
+  # Window 2: Guard
+  - guard:
+      root: /workspaces/coyote
+      layout: main-vertical
+      panes:
+        - bundle exec guard
+
+  # Window 3: Rails Console
+  - rails_console:
+      root: /workspaces/coyote
+      layout: main-vertical
+      panes:
+        - bundle exec rails c
+
+  # Window 4: Neovim for Lyra
+  - lyra_nvim:
+      root: /workspaces/lyra
+      layout: main-horizontal
+      panes:
+        - nvim .
