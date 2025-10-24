@@ -629,6 +629,7 @@ require('lazy').setup({
         rubocop_no_server = {
           -- Use the user's shell to execute the bundle command (or 'bundle' if in PATH)
           command = 'rubocop',
+          timeout_ms = 20000,
 
           -- FINAL ARGS:
           args = {

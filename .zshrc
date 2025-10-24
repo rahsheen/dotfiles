@@ -64,6 +64,7 @@ ZSH_THEME="bira"
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
+
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
@@ -102,15 +103,16 @@ fi
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-function config {
-    GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" git "$@"
-}
-function vimconfig {
-    GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" nvim "$@"
-}
-compdef _git config
-zstyle ':completion:*' completer _complete _files
-# alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
+# function config {
+#     GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" git "$@"
+# }
+# function vimconfig {
+#     GIT_DIR="$HOME/.cfg/" GIT_WORK_TREE="$HOME" nvim "$@"
+# }
+# compdef _git config
+# zstyle ':completion:*' completer _complete _files
+alias vimconfig="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME nvim"
+alias config="GIT_DIR=$HOME/.cfg GIT_WORK_TREE=$HOME git"
 
 setopt no_share_history
 unsetopt share_history
@@ -125,15 +127,32 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-export ANDROID_SDK_ROOT=$HOME/Android/Sdk
-PATH=$PATH:$ANDROID_SDK_ROOT/emulator
-PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
-export PATH
+# Check if the Android SDK directory exists and is a directory
+ANDROID_SDK_ROOT=$HOME/Android/Sdk
+
+if [ -d "$ANDROID_SDK_ROOT" ]; then
+  # Export the root path
+  export ANDROID_SDK_ROOT
+
+  # Append SDK subdirectories to PATH
+  PATH="$PATH:$ANDROID_SDK_ROOT/emulator"
+  PATH="$PATH:$ANDROID_SDK_ROOT/platform-tools"
+  
+  # Export the modified PATH
+  export PATH
+
+  # Optional: You can add other tools directories here, like 'cmdline-tools/latest/bin'
+fi
 
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
 export PATH=$PATH:/Users/rahsheen/.local/bin
 
-# Add asdf shims to PATH
-export ASDF_DATA_DIR="$HOME/.asdf"
-export PATH="$ASDF_DATA_DIR/shims:$PATH"
+if [ "$USER" = "coder" ]; then
+  # This block will only execute for coder user (for roadrunnerwm)
+  . /workspaces/.env.secrets
+  . /etc/profile.d/asdf.sh
+else
+  export ASDF_DATA_DIR="$HOME/.asdf"
+  export PATH="$ASDF_DATA_DIR/shims:$PATH"
+fi
