@@ -48,7 +48,10 @@ return {
       },
       settings = {
         sonarlint = {
-          rules = {
+          endrules = {
+            -- ----------------------------------------------------------------------
+            -- 🧱 EXISTING TYPESCRIPT & RUBY RULES (FROM YOUR ORIGINAL CONFIG)
+            -- ----------------------------------------------------------------------
             ['typescript:S6019'] = { level = 'on' },
             ['typescript:S6035'] = { level = 'on' },
             ['typescript:S2933'] = { level = 'on' },
@@ -105,7 +108,6 @@ return {
             ['typescript:S5850'] = { level = 'on' },
             ['typescript:S6827'] = { level = 'on' },
             ['tssecurity:S6287'] = { level = 'on' },
-            ['tsarchitecture:S7134'] = { level = 'on' },
             ['typescript:S3579'] = { level = 'on' },
             ['typescript:S4043'] = { level = 'on' },
             ['typescript:S3415'] = { level = 'on' },
@@ -196,6 +198,79 @@ return {
             ['ruby:S1145'] = { level = 'on' },
             ['ruby:S1313'] = { level = 'on' },
             ['ruby:S1656'] = { level = 'on' },
+
+            -- ----------------------------------------------------------------------
+            -- 🛠️ NEW / MISSING TYPESCRIPT RULES (Ensuring complete coverage for TS/TSX)
+            -- ----------------------------------------------------------------------
+            -- CRITICAL RULES
+            ['typescript:S3785'] = { level = 'on' }, -- "in" should not be used with primitive types
+            ['typescript:S3834'] = { level = 'on' }, -- "new" operator should not be used with Symbol and BigInt
+            ['typescript:S4125'] = { level = 'on' }, -- "typeof" expressions should only be compared to valid values
+
+            -- MAJOR RULES
+            ['typescript:S3782'] = { level = 'on' }, -- Arguments to built-in functions should match documented types
+            ['typescript:S3757'] = { level = 'on' }, -- Arithmetic operations should not result in "NaN"
+            ['typescript:S3760'] = { level = 'on' }, -- Arithmetic operators should only have numbers as operands
+
+            -- MINOR/CODE SMELL RULES
+            ['typescript:S7753'] = { level = 'on' }, -- "indexOf()" and "lastIndexOf()" should be used instead of "findIndex()..."
+            ['typescript:S7732'] = { level = 'on' }, -- "instanceof" should not be used with built-in objects
+            ['typescript:S7784'] = { level = 'on' }, -- "structuredClone()" should be used instead of other deep cloning methods
+            ['typescript:S7741'] = { level = 'on' }, -- "typeof" should not be used to check for "undefined"
+            ['typescript:S2138'] = { level = 'on' }, -- "undefined" should not be assigned
+            ['typescript:S1321'] = { level = 'on' }, -- "with" statements should not be used
+            ['typescript:S1528'] = { level = 'on' }, -- Array constructors should not be used
+            ['typescript:S7751'] = { level = 'on' }, -- Array flattening should use the native "flat()" method
+            ['typescript:S7745'] = { level = 'on' }, -- Array length checks should not be used before "some()" and "every()"" calls
+            ['typescript:S7752'] = { level = 'on' }, -- Array methods ".map().flat()" should be replaced with ".flatMap()"
+            ['typescript:S7776'] = { level = 'on' }, -- Arrays used only for existence checks should be Sets (The specifically requested rule)
+
+            -- MISC
+            ['typescript:S7783'] = { level = 'on' }, -- "trimLeft()" and "trimRight()" should be replaced with "trimStart()..."
+            ['typescript:S4326'] = { level = 'on' }, -- "await" should not be used redundantly
+            ['typescript:S909'] = { level = 'on' }, -- "continue" should not be used
+            ['tsarchitecture:S8134'] = { level = 'on' }, -- Architecture Directives to remove specific usages...
+
+            -- ----------------------------------------------------------------------
+            -- 💻 NEW JAVASCRIPT RULES (Ensuring parity with TS config)
+            -- Note: Only rules that were *not* already in your original TS list are explicitly added here
+            -- to cover the full set of rules from your initial JSON.
+            -- ----------------------------------------------------------------------
+            ['javascript:S1440'] = { level = 'on' }, -- "===" and "!==" should be used instead of "==" and "!="
+            ['javascript:S3500'] = { level = 'on' }, -- "const" variables should not be reassigned
+            ['javascript:S7753'] = { level = 'on' }, -- "indexOf()" and "lastIndexOf()" should be used instead of "findIndex()..."
+            ['javascript:S7732'] = { level = 'on' }, -- "instanceof" should not be used with built-in objects
+            ['javascript:S7784'] = { level = 'on' }, -- "structuredClone()" should be used instead of other deep cloning methods
+            ['javascript:S7741'] = { level = 'on' }, -- "typeof" should not be used to check for "undefined"
+            ['javascript:S2138'] = { level = 'on' }, -- "undefined" should not be assigned
+            ['javascript:S3785'] = { level = 'on' }, -- "in" should not be used with primitive types
+            ['javascript:S3834'] = { level = 'on' }, -- "new" operator should not be used with Symbol and BigInt
+            ['javascript:S4125'] = { level = 'on' }, -- "typeof" expressions should only be compared to valid values
+            ['javascript:S3782'] = { level = 'on' }, -- Arguments to built-in functions should match documented types
+            ['javascript:S3757'] = { level = 'on' }, -- Arithmetic operations should not result in "NaN"
+            ['javascript:S3760'] = { level = 'on' }, -- Arithmetic operators should only have numbers as operands
+            ['javascript:S1528'] = { level = 'on' }, -- Array constructors should not be used
+            ['javascript:S7751'] = { level = 'on' }, -- Array flattening should use the native "flat()" method
+            ['javascript:S7745'] = { level = 'on' }, -- Array length checks should not be used before "some()..."
+            ['javascript:S7752'] = { level = 'on' }, -- Array methods ".map().flat()" should be replaced with ".flatMap()"
+            ['javascript:S7776'] = { level = 'on' }, -- Arrays used only for existence checks should be Sets
+            ['javascript:S7783'] = { level = 'on' }, -- "trimLeft()" and "trimRight()" should be replaced with "trimStart()..."
+            ['javascript:S4326'] = { level = 'on' }, -- "await" should not be used redundantly
+            ['javascript:S909'] = { level = 'on' }, -- "continue" should not be used
+            ['javascript:S1321'] = { level = 'on' }, -- "with" statements should not be used
+            ['jsarchitecture:S8134'] = { level = 'on' }, -- Architecture Directives to remove specific usages...
+
+            -- ----------------------------------------------------------------------
+            -- 🚫 DEPRECATED/DISABLED RULES (Set to 'off' for clear intent)
+            -- ----------------------------------------------------------------------
+            ['typescript:S3973'] = { level = 'off' }, -- A conditionally executed single line... (DEPRECATED)
+            ['typescript:S5743'] = { level = 'off' }, -- Allowing browsers to perform DNS prefetching... (DEPRECATED HOTSPOT)
+            ['typescript:S1105'] = { level = 'off' }, -- An open curly brace should be located... (DEPRECATED)
+            ['tsarchitecture:S7134'] = { level = 'off' }, -- Architectural constraints should not be violated (DEPRECATED)
+            ['javascript:S1442'] = { level = 'off' }, -- "alert(...)" should not be used (DEPRECATED)
+            ['javascript:S3973'] = { level = 'off' }, -- A conditionally executed single line... (DEPRECATED)
+            ['javascript:S5743'] = { level = 'off' }, -- Allowing browsers to perform DNS prefetching... (DEPRECATED HOTSPOT)
+            ['javascript:S1105'] = { level = 'off' }, -- An open curly brace should be located... (DEPRECATED)
           },
         },
       },

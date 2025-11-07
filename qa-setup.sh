@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 # Script to run inside the remote Coder workspace
 
 # The target branch name is expected to be passed via the BRANCH_NAME environment variable
@@ -27,9 +29,11 @@ for PROJECT in "${PROJECT_DIRS[@]}"; do
         git fetch origin > /dev/null 2>&1  # Fetch silently
         
         # Try checking out the branch, creating it locally if it doesn't exist
-        if git checkout "${TARGET_BRANCH}"; then
+        git reset --hard
+
+        if git checkout "${TARGET_BRANCH}" 2> /dev/null; then
             echo "Successfully checked out existing branch: ${TARGET_BRANCH}"
-        elif git checkout -b "${TARGET_BRANCH}" "origin/${TARGET_BRANCH}"; then
+        elif git checkout -b "${TARGET_BRANCH}" "origin/${TARGET_BRANCH}" 2> /dev/null; then
             echo "Successfully checked out and created new branch: ${TARGET_BRANCH}"
         else
             echo "Warning: Could not checkout or create branch ${TARGET_BRANCH} in ${PROJECT}. Moving to next project." >&2
