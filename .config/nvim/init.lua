@@ -563,6 +563,7 @@ require('lazy').setup({
           filetypes = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
         },
         jsonls = {},
+        tailwindcss = {},
       }
 
       -- Ensure the servers and tools above are installed

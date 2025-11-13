@@ -63,18 +63,18 @@ ZSH_THEME="bira"
 # HIST_STAMPS="mm/dd/yyyy"
 
 # Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
+export ZSH_CUSTOM="$HOME/.config/zsh/custom"
 
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
+# export PYENV_ROOT="$HOME/.pyenv"
+# export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init --path)"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git pyenv fzf kubectl coder-tools)
+plugins=(git fzf kubectl coder-tools)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -146,7 +146,6 @@ fi
 
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
-export PATH=$PATH:/Users/rahsheen/.local/bin
 
 if [ "$USER" = "coder" ]; then
   # This block will only execute for coder user (for roadrunnerwm)

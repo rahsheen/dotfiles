@@ -25,6 +25,10 @@ cp .tmux* $HOME
 cp .zshrc $HOME
 cp .tool-versions $HOME
 
+if [ -d "/workspaces" ]; then
+  echo ". /workspaces/.env.secrets" >> /home/coder/.zshrc
+fi
+
 # Add local bin to path
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   echo "export PATH=\$PATH:$HOME/.local/bin" >> $HOME/.zshrc

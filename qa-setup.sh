@@ -43,6 +43,8 @@ for PROJECT in "${PROJECT_DIRS[@]}"; do
     fi
 done
 
+/usr/local/bin/tilt trigger lyra-coyote-base
+
 RAILS_PROJECT_PATH="${PROJECTS_DIR}/coyote"
 
 if [ -d "${RAILS_PROJECT_PATH}" ]; then
@@ -59,5 +61,7 @@ else
     echo "Rails project directory not found or named differently. Skipping migrations."
 fi
 
+echo "Installing dotfiles..."
+coder dotfiles -y https://github.com/rahsheen/dotfiles.git
 
 echo "QA setup script finished."
