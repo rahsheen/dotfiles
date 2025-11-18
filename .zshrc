@@ -146,11 +146,3 @@ fi
 
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
-
-if [ "$USER" = "coder" ]; then
-  export ASDF_DATA_DIR="$HOME/.local/asdf"
-  export PATH="$ASDF_DATA_DIR/shims:$PATH"
-else
-  export ASDF_DATA_DIR="$HOME/.asdf"
-  export PATH="$ASDF_DATA_DIR/shims:$PATH"
-fi

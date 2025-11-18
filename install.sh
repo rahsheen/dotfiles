@@ -17,7 +17,6 @@
 # config checkout
 # config config status.showUntrackedFiles no
 
-# Copy dotfiles when initializing codespaces/coder environment
 cp -a .config/* $HOME/.config
 mkdir -p $HOME/.local/bin
 cp -a .local/bin/* $HOME/.local/bin
