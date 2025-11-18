@@ -92,6 +92,29 @@ else
   echo "Zsh is either not installed or is already the default shell."
 fi
 
+OHMYZSH_DIR="$HOME/.oh-my-zsh"
+
+if [ -d "$OHMYZSH_DIR" ]; then
+  echo "Oh My Zsh is already installed in $OHMYZSH_DIR."
+else
+  echo "Oh My Zsh is not installed. Running installation..."
+  
+  # Check if curl is installed, as it's required for the installer script
+  if command -v curl > /dev/null; then
+    # Install Oh My Zsh (unattended mode to prevent chsh prompt)
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    
+    if [ $? -eq 0 ]; then
+      echo "Oh My Zsh installed successfully."
+    else
+      echo "ERROR: Oh My Zsh installation failed."
+    fi
+  else
+    echo "ERROR: 'curl' command is not found. Cannot download Oh My Zsh installer."
+    # You could add a 'wget' fallback here if needed, or prompt the user to install curl.
+  fi
+fi
+
 if [[ -z `command -v tmuxinator` ]]; then
   gem install tmuxinator
 fi
