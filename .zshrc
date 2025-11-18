@@ -148,9 +148,8 @@ fi
 # autoload -Uz compinit && compinit
 
 if [ "$USER" = "coder" ]; then
-  # This block will only execute for coder user (for roadrunnerwm)
-  . /workspaces/.env.secrets
-  . /etc/profile.d/asdf.sh
+  export ASDF_DATA_DIR="$HOME/.local/asdf"
+  export PATH="$ASDF_DATA_DIR/shims:$PATH"
 else
   export ASDF_DATA_DIR="$HOME/.asdf"
   export PATH="$ASDF_DATA_DIR/shims:$PATH"
