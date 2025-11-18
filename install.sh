@@ -102,7 +102,7 @@ else
   # Check if curl is installed, as it's required for the installer script
   if command -v curl > /dev/null; then
     # Install Oh My Zsh (unattended mode to prevent chsh prompt)
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
     
     if [ $? -eq 0 ]; then
       echo "Oh My Zsh installed successfully."
