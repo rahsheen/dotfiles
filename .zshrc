@@ -74,7 +74,7 @@ export ZSH_CUSTOM="$HOME/.config/zsh/custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git fzf kubectl coder-tools)
+plugins=(git fzf kubectl coder-tools asdf)
 
 source $ZSH/oh-my-zsh.sh
 
