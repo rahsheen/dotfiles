@@ -124,7 +124,15 @@ return {
     opts = {},
     config = function()
       require('typescript-tools').setup {
-        settings = { expose_as_code_action = 'all' },
+        settings = {
+          expose_as_code_action = 'all',
+          tsserver_file_preferences = {
+            includeInlayParameterNameHints = 'all',
+            includeCompletionsForModuleExports = true,
+            quotePreference = 'single',
+            importModuleSpecifierPreference = 'relative',
+          },
+        },
       }
     end,
   },
