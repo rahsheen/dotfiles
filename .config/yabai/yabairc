@@ -19,3 +19,7 @@ yabai -m rule --add app="^Calculator$" manage=off
 
 # Important: Do NOT include lines related to --load-sa or scripting additions
 # if you are not disabling SIP, as these will not work and may cause errors.
+
+# Set Obsidian to always float and be sticky (visible on all spaces)
+yabai -m rule --add app="^Obsidian$" manage=off
+

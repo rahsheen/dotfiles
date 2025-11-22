@@ -26,3 +26,5 @@ shift + alt - return : yabai -m window --warp first
 alt - s : yabai -m window --toggle split
 ctrl + alt - f : yabai -m window --toggle zoom-fullscreen
 
+alt - o : toggle-obsidian.sh 
+

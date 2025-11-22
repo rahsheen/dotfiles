@@ -531,7 +531,7 @@ require('lazy').setup({
           filetypes = { 'ruby', 'rakefile', 'Guardfile' },
           -- Relying on Mason to install, but may need to be manually re-installed
           -- via Mason within a relevant project in some cases if Ruby version doesn't match
-          -- cmd = { vim.fn.expand '$ASDF_DIR/shims/ruby-lsp' },
+          cmd = { vim.fn.expand '~/.local/bin/launch-ruby-lsp.sh' },
           init_options = {
             enabledFeatures = {
               'documentHighlights',
@@ -591,7 +591,7 @@ require('lazy').setup({
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for tsserver)
-            if server_name == 'tsserver' then
+            if server_name == 'tsserver' or server_name == 'ruby_lsp' then
               return
             end
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
@@ -601,7 +601,6 @@ require('lazy').setup({
       }
 
       -- require('lspconfig')['gdscript'].setup { name = 'godot' }
-      -- require('lspconfig')['ruby_lsp'].setup(servers['ruby_lsp'])
     end,
   },
 
