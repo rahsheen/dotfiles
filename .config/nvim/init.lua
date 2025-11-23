@@ -576,10 +576,12 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format lua code
-      })
+      local ensure_installed = vim.tbl_filter(function(server)
+        return server ~= 'ruby_lsp'
+      end, vim.tbl_keys(servers or {}))
+      -- vim.list_extend(ensure_installed, {
+      --   'stylua', -- Used to format lua code
+      -- })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
@@ -591,7 +593,7 @@ require('lazy').setup({
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for tsserver)
-            if server_name == 'tsserver' or server_name == 'ruby_lsp' then
+            if server_name == 'tsserver' then
               return
             end
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
@@ -601,6 +603,7 @@ require('lazy').setup({
       }
 
       -- require('lspconfig')['gdscript'].setup { name = 'godot' }
+      require('lspconfig').ruby_lsp.setup(servers['ruby_lsp'])
     end,
   },
 
