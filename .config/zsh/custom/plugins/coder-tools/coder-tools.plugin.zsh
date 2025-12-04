@@ -1,14 +1,14 @@
 # Function to create and configure a Coder workspace from a Jira branch name
 qa-coder() {
   if [ -z "$1" ]; then
-    echo "Usage: qa-coder <jira-branch-name>"
+    echo "Usage: qa-coder <jira-branch-name> <template>"
     echo "Example: qa-coder PT-840-Incorrect-floor-cap-showing..."
     return 1
   fi
 
   local FULL_BRANCH_NAME="$1"
   local SCRIPT_FILE="${HOME}/qa-setup.sh"
-  local TEMPLATE_NAME="csdev"  # The required base template name
+  local TEMPLATE_NAME="${2:-csdev}"  # Use the second argument as the template name, default to 'csdev'
 
   # 1. Parse Ticket ID from the branch name
   # Extracts 'PT-840' from the start of the branch name (e.g., PT-840-...)
@@ -69,11 +69,16 @@ qa-coder() {
     local AMI_DEFAULT_VALUE="csdev-main-ubuntu-jammy-amd64-"
 
     echo "Creating workspace from template ${TEMPLATE_NAME}..."
-    coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
-      --parameter "${AMI_PARAM_NAME}=${AMI_DEFAULT_VALUE}" \
-      --parameter "csdev_branch=main" \
-      --parameter "instance_type=t3.2xlarge" \
-      --parameter "region=us-east-1"
+    if [ "${TEMPLATE_NAME}" = "csdev" ]; then
+      coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
+        --parameter "${AMI_PARAM_NAME}=${AMI_DEFAULT_VALUE}" \
+        --parameter "csdev_branch=main" \
+        --parameter "instance_type=t3.2xlarge" \
+        --parameter "region=us-east-1"
+    else
+      coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
+        --parameter "csdev_branch=main"
+    fi
   fi
 
   # Give the workspace a moment to start provisioning

@@ -25,6 +25,7 @@ shift + alt - return : yabai -m window --warp first
 
 alt - s : yabai -m window --toggle split
 ctrl + alt - f : yabai -m window --toggle zoom-fullscreen
+ctrl + shift - space : yabai -m space --layout "$(yabai -m query --spaces --space | jq -r 'if .type == "bsp" then "stack" else "bsp" end')"
 
 alt - o : toggle-obsidian.sh 
 

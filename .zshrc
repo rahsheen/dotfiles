@@ -74,7 +74,7 @@ export ZSH_CUSTOM="$HOME/.config/zsh/custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git fzf kubectl coder-tools asdf)
+plugins=(git fzf kubectl coder-tools)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -144,5 +144,6 @@ if [ -d "$ANDROID_SDK_ROOT" ]; then
   # Optional: You can add other tools directories here, like 'cmdline-tools/latest/bin'
 fi
 
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
