@@ -52,6 +52,7 @@ add_git_alias "ff" "pull --ff-only"
 add_git_alias "br" "branch"
 add_git_alias "st" "status"
 add_git_alias "lg" "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+git config --global rerere.enabled true
 
 # Get the OS type
 unameOut="$(uname -s)"
