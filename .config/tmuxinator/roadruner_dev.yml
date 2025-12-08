@@ -1,0 +1,166 @@
+# roadrunner_dev.yml
+name: roadrunner_dev
+root: ~/roadrunner # <-- This sets the default root for all windows
+
+windows:
+  # 1. Primary Backend Applications (Inherits root: ~/roadrunner)
+  - name: roadrunner_apps
+    layout: tiled
+    panes:
+      - name: falco
+        commands:
+          - cd falco
+          - bundle exec puma -p 7000 -C ./config/puma.rb
+      - name: coyote
+        commands:
+          - cd coyote
+          - bundle exec puma -p 9000 -C ./config/puma.rb
+      - name: beeline
+        commands:
+          - cd beeline
+          - python3 manage.py runserver 8002
+      - name: gemini
+        commands:
+          - cd gemini
+          - yarn start
+
+---
+
+  # 2. Workers (Inherits root: ~/roadrunner)
+  - name: workers
+    layout: main-horizontal
+    panes:
+      - name: falco_worker
+        commands:
+          - cd falco
+          - bundle exec sidekiq
+      - name: coyote_normal
+        commands:
+          - cd coyote
+          - bundle exec sidekiq -C config/normal_worker.yml
+      - name: beeline_worker
+        commands:
+          - cd beeline
+          - celery -A beeline worker -l info
+      - name: coyote_salesforce
+        commands:
+          - cd coyote
+          - bundle exec sidekiq -C config/salesforce_worker.yml
+      - name: coyote_intacct
+        commands:
+          - cd coyote
+          - bundle exec sidekiq -C config/intacct_worker.yml
+      - name: coyote_waste_meter
+        commands:
+          - cd coyote
+          - bundle exec sidekiq -C config/waste_meter_worker.yml
+      - name: coyote_customer_portal
+        commands:
+          - cd coyote
+          - bundle exec sidekiq -C config/cp_worker.yml
+
+---
+
+  # 3. Frontends (Inherits root: ~/roadrunner)
+  - name: frontends
+    layout: tiled
+    panes:
+      - name: dsl_storybook
+        commands:
+          - cd dsl
+          - pnpm storybook dev --no-open -p 3100
+      - name: falco_webpack
+        commands:
+          - cd falco
+          - yarn start:container
+      - name: driver_app_webpack
+        commands:
+          - cd falco-web-lite
+          - yarn start
+      - name: coyote_web
+        commands:
+          - cd coyote
+          - yarn start:container
+      - name: lyra_coyote
+        commands:
+          - cd lyra
+          - yarn nx serve coyote-base
+      - name: lyra_customer_portal
+        commands:
+          - cd lyra
+          - yarn nx serve customer-portal
+
+---
+
+  # 4. Cetus/Customer Portal Microservices (Overrides root for cetus repo)
+  - name: cetus
+    root: ~/roadrunner/cetus # <-- Specific root for all Cetus projects
+    layout: tiled
+    panes:
+      - name: cp_auth
+        commands:
+          - env_file=apps/cp-auth/.env.coder.v2 yarn nx serve cp-auth
+      - name: cp_accounts
+        commands:
+          - env_file=apps/cp-accounts/.env.coder yarn nx serve cp-accounts
+      - name: cp_locations
+        commands:
+          - env_file=apps/cp-locations/.env.coder yarn nx serve cp-locations
+      - name: cp_invitations
+        commands:
+          - env_file=apps/cp-invitations/.env.coder yarn nx serve cp-invitations
+      - name: cp_users
+        commands:
+          - env_file=apps/cp-users/.env.coder yarn nx serve cp-users
+      - name: cp_services
+        commands:
+          - env_file=apps/cp-services/.env.coder yarn nx serve cp-services
+      - name: cp_requests
+        commands:
+          - env_file=apps/cp-requests/.env.coder yarn nx serve cp-requests
+      - name: cp_federation
+        commands:
+          - env_file=apps/cp-federation/.env.coder yarn nx serve cp-federation
+      - name: cp_dsg
+        commands:
+          - dotenvx run -f apps/cp-dsg/.env -- yarn nx serve cp-dsg
+
+---
+
+  # 5. Compology Services (Overrides root for platform repo)
+  - name: compology
+    root: ~/roadrunner/platform # <-- Specific root for all Compology projects
+    layout: main-horizontal
+    panes:
+      - name: waste_metering
+        commands:
+          - sh -c 'PORT=3000 ./node_modules/.bin/ts-node-dev bin/web_dev app'
+      - name: wm_rr_api
+        commands:
+          - sh -c 'PORT=3001 ./node_modules/.bin/ts-node-dev bin/web_dev rr-api'
+      - name: wm_containers
+        commands:
+          - sh -c 'PORT=3002 ./node_modules/.bin/ts-node-dev bin/web_dev containers-api'
+      - name: wm_trashtags
+        commands:
+          - sh -c 'PORT=3003 ./node_modules/.bin/ts-node-dev bin/web_dev trashtags'
+
+---
+
+  # 6. Miscellaneous Services (Inherits root: ~/roadrunner)
+  - name: others
+    layout: main-pane
+    panes:
+      - name: driver_app
+        commands:
+          - cd falco-web-lite
+          - bundle exec puma -p 8000 -C ./config/puma.rb
+      - name: falco_coyote_subscribe
+        commands:
+          - cd falco
+          - bundle exec rake coyote_subscribe
+      - name: pdf_render_service
+        commands:
+          - cd pdf-render-service
+          - sh -c 'cd app && yarn install && yarn start'
+
