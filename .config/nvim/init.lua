@@ -367,6 +367,20 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      local find_nx_project_root = function()
+        local path = vim.fn.expand '%:p:h'
+        local root = vim.fs.find('project.json', { path = path, upward = true })[1]
+        return root and vim.fn.fnamemodify(root, ':h') or vim.fn.getcwd()
+      end
+
+      -- Keymap to search ONLY within the current app/lib
+      vim.keymap.set('n', '<leader>sp', function()
+        require('telescope.builtin').find_files {
+          cwd = find_nx_project_root(),
+          prompt_title = 'Find Files in Project Context',
+        }
+      end, { desc = '[S]earch Current [P]roject' })
     end,
   },
 
@@ -540,9 +554,9 @@ require('lazy').setup({
 
       -- require('lspconfig')['gdscript'].setup { name = 'godot' }
       vim.lsp.config('ruby_lsp', {
-          cmd = { vim.fn.expand '~/.local/bin/launch-ruby-lsp.sh' },
-        })
-      vim.lsp.enable('ruby_lsp')
+        cmd = { vim.fn.expand '~/.local/bin/launch-ruby-lsp.sh' },
+      })
+      vim.lsp.enable 'ruby_lsp'
     end,
   },
 
@@ -693,23 +707,61 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
+      local get_nx_context = function()
+        local path = vim.api.nvim_buf_get_name(0)
+        local root = vim.fs.find('project.json', { path = path, upward = true })[1]
+        if root then
+          local data = vim.fn.json_decode(vim.fn.readfile(root))
+          return data.name or 'nx-pkg'
+        end
+        return ''
+      end
+
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
+      local MiniStatusline = require 'mini.statusline'
+      MiniStatusline.setup {
+        content = {
+          active = function()
+            -- 1. Force these to ALWAYS show by setting trunc_width to 0
+            local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 0 }
+            local git = MiniStatusline.section_git { trunc_width = 0 }
+            local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 0 }
 
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
+            -- 2. Standard info for the right side
+            local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
+            local location = '%2l:%-2v'
 
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
+            -- 3. Custom Smart Path Logic
+            -- Result example: "󱃾 my-lib › .../components/Button.tsx"
+            local nx_project = get_nx_context() -- Uses the cached function we built
+
+            -- Get last 2 parts of the path (e.g., 'components/Button.tsx')
+            local path = vim.fn.expand '%:p'
+            local parts = vim.split(path, '/')
+            local short_path = ''
+            if #parts >= 2 then
+              short_path = parts[#parts - 1] .. '/' .. parts[#parts]
+            else
+              short_path = parts[#parts] or ''
+            end
+
+            local nx_display = string.format('%s › %s%s', nx_project, (#parts > 2 and '…/' or ''), short_path)
+
+            -- 4. Combine everything
+            return MiniStatusline.combine_groups {
+              { hl = mode_hl, strings = { mode } },
+              { hl = 'MiniStatuslineDevinfo', strings = { git, diagnostics } },
+              -- This section will now yield space to the left side
+              { hl = 'MiniStatuslineFilename', strings = { nx_display } },
+              '%=',
+              { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+              { hl = mode_hl, strings = { location } },
+            }
+          end,
+        },
+      }
     end,
   },
   { -- Highlight, edit, and navigate code

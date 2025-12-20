@@ -183,24 +183,6 @@ return {
     end,
   },
   {
-    'nvim-neotest/neotest',
-    lazy = true,
-    dependencies = {
-      'nvim-neotest/nvim-nio',
-      'nvim-lua/plenary.nvim',
-      'antoinemadec/FixCursorHold.nvim',
-      'nvim-treesitter/nvim-treesitter',
-      'olimorris/neotest-rspec',
-    },
-    config = function()
-      require('neotest').setup {
-        adapters = {
-          require 'neotest-rspec',
-        },
-      }
-    end,
-  },
-  {
     'tpope/vim-rails',
     dependencies = { 'tpope/vim-dispatch', 'tpope/vim-dadbod', 'tpope/vim-abolish', 'tpope/vim-bundler' },
   },
