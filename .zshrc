@@ -144,6 +144,17 @@ if [ -d "$ANDROID_SDK_ROOT" ]; then
   # Optional: You can add other tools directories here, like 'cmdline-tools/latest/bin'
 fi
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  if command -v brew >/dev/null 2>&1; then
+    BREW_PREFIX=$(brew --prefix)
+
+    if [ -d "$BREW_PREFIX/opt/openjdk/bin" ]; then
+      export PATH="$BREW_PREFIX/opt/openjdk/bin:$PATH"
+      export JAVA_HOME=$(/usr/libexec/java_home)
+    fi
+  fi
+fi
+
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
