@@ -8,7 +8,7 @@ qa-coder() {
 
   local FULL_BRANCH_NAME="$1"
   local SCRIPT_FILE="${HOME}/qa-setup.sh"
-  local TEMPLATE_NAME="${2:-csdev}"  # Use the second argument as the template name, default to 'csdev'
+  local TEMPLATE_NAME="${2:-acme}"  # Use the second argument as the template name, default to 'acme'
 
   # 1. Parse Ticket ID from the branch name
   # Extracts 'PT-840' from the start of the branch name (e.g., PT-840-...)
@@ -65,36 +65,39 @@ qa-coder() {
     # Workspace does not exist (EXIT_CODE != 0)
     echo "➕ Workspace '${WORKSPACE_NAME}' does not exist. Creating now..."
 
-    local AMI_PARAM_NAME="ami_name_prefix"  # CHECK YOUR TEMPLATE FOR THE REAL NAME
-    local AMI_DEFAULT_VALUE="csdev-main-ubuntu-jammy-amd64-"
+    # local AMI_PARAM_NAME="ami_name_prefix"
+    # local AMI_DEFAULT_VALUE="csdev-main-ubuntu-jammy-amd64-"
+    # --parameter "${AMI_PARAM_NAME}=${AMI_DEFAULT_VALUE}" \
 
     echo "Creating workspace from template ${TEMPLATE_NAME}..."
-    if [ "${TEMPLATE_NAME}" = "csdev" ]; then
-      coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
-        --parameter "${AMI_PARAM_NAME}=${AMI_DEFAULT_VALUE}" \
-        --parameter "csdev_branch=main" \
-        --parameter "instance_type=t3.2xlarge" \
-        --parameter "region=us-east-1"
-    else
-      coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
-        --parameter "csdev_branch=main"
-    fi
+
+    coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
+      --parameter "csdev_branch=main" \
+      --parameter "use_prebuild=\"true\"" \
+      --parameter "enable_dotfiles=false" \
+      --parameter "shell=fish" || { echo "Error: Failed to create coder workspace." >&2;return 1;}
   fi
 
-  # Give the workspace a moment to start provisioning
-  # The next 'coder' commands will implicitly wait for the agent to be running.
-  echo "Waiting for workspace connection..."
-
   # 3. Securely copy the setup script to the running workspace
-  echo "Copying setup script (${SCRIPT_FILE}) to workspace..."
-  scp "${SCRIPT_FILE}" "${CODER_HOST}":~/
+  # echo "Copying setup script (${SCRIPT_FILE}) to workspace..."
+  # scp "${SCRIPT_FILE}" "${CODER_HOST}":~/ || { echo "Error: Failed to copy setup script." >&2; return 1; }
 
+
+  SCRIPT_FILE="${HOME}/qa-setup.sh" # Assumes qa-setup.sh exists in the user's home directory
   # 4. Execute the script remotely, passing the full branch name as an ENV variable
   echo "Executing branch checkout commands remotely..."
   # The '--' separates Coder CLI flags from the remote command.
   # The 'env' command is used to pass the BRANCH_NAME into the remote shell.
   # Run the remote command using the host entry defined by 'coder config-ssh'
-  ssh -t "${CODER_HOST}" -- env BRANCH_NAME="${FULL_BRANCH_NAME}" bash /home/coder/qa-setup.sh
+  cat "${SCRIPT_FILE}" | ssh -t "${CODER_HOST}" \
+    "env BRANCH_NAME=\"${FULL_BRANCH_NAME}\" bash -s"
+
+
+  if [ $? -ne 0 ]; then
+    echo "Error: Remote script execution failed during single SSH connection." >&2
+    exit 1
+  fi
+  # ssh -t "${CODER_HOST}" -- env BRANCH_NAME="${FULL_BRANCH_NAME}" bash ~/qa-setup.sh || { echo "Error: Failed to run remote setup script." >&2; return 1; }
 
   echo "--- ✅ Workspace Setup Complete ---"
   # You can add the automatic browser open from the previous answer here for a one-stop solution.

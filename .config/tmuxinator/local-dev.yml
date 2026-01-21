@@ -1,0 +1,51 @@
+# ~/.config/tmuxinator/coyote_lyra.yml (or wherever you prefer to save it)
+
+name: local-dev
+root: ~/roadrunner
+
+windows:
+  # Window 1: Neovim for Coyote
+  - coyote_nvim:
+      root: ~/roadrunner/coyote
+      layout: main-horizontal
+      panes:
+        - nvim .
+
+  - coyote_server:
+      root: ~/roadrunner/coyote
+      layout: main-horizontal
+      panes:
+        - bundle exec rails s
+
+  # Window 2: Guard
+  - guard:
+      root: ~/roadrunner/coyote
+      layout: main-vertical
+      panes:
+        - bundle exec guard
+
+  # Window 3: Rails Console
+  - rails_console:
+      root: ~/roadrunner/coyote
+      layout: main-vertical
+      panes:
+        - bundle exec rails c
+
+  # Window 4: Neovim for Lyra
+  - lyra_nvim:
+      root: ~/roadrunner/lyra
+      layout: main-horizontal
+      panes:
+        - nvim .
+
+  - falco:
+      root: ~/roadrunner/falco
+      layout: main-horizontal
+      panes:
+        - bundle exec rails s
+
+  - gemini:
+      root: ~/roadrunner/gemini
+      layout: main-horizontal
+      panes:
+        - yarn start

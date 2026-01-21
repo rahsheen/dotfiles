@@ -1,6 +1,4 @@
-kubectl 1.23.6
 ruby 3.3.2
 nodejs 22.8.0
+yarn 1.22.19
 neovim stable
-awscli 2.25.5
-python 3.7.17

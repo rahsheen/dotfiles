@@ -1,0 +1,32 @@
+name: roadrunner_dev
+root: ~/roadrunner
+pre: . ~/roadrunner/.env.secrets
+
+windows:
+  - roadrunner_apps:
+      layout: tiled
+      panes:
+        - commands:
+            - cd coyote
+            - bundle exec puma -p 9000 -C ./config/puma.rb
+        - commands:
+            - cd gemini
+            - yarn start
+
+  - workers:
+      layout: main-horizontal
+      panes:
+        - commands:
+            - cd coyote
+            - bundle exec sidekiq -C config/normal_worker.yml
+
+  - frontends:
+      layout: tiled
+      panes:
+        - commands:
+            - cd coyote
+            - yarn start:container
+        - commands:
+            - cd lyra
+            - yarn nx serve coyote-base
+
