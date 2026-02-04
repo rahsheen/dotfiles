@@ -773,21 +773,6 @@ require('lazy').setup({
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },
-      refactor = {
-        highlight_definitions = {
-          enable = true,
-          -- Set to false if you have an `updatetime` of ~100.
-          clear_on_cursor_move = true,
-        },
-        highlight_current_scope = { enable = true },
-        smart_rename = {
-          enable = true,
-          -- Assign keymaps to false to disable them, e.g. `smart_rename = false`.
-          keymaps = {
-            smart_rename = 'grr',
-          },
-        },
-      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -802,9 +787,6 @@ require('lazy').setup({
       --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     end,
-  },
-  {
-    'nvim-treesitter/nvim-treesitter-refactor',
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the

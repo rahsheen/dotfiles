@@ -4,7 +4,10 @@ return {
     cmd = 'Copilot',
     event = 'InsertEnter',
     config = function()
-      require('copilot').setup {}
+      require('copilot').setup {
+        suggestion = { enabled = false }, -- Set to false if you only want to use it with avante
+        panel = { enabled = false },
+      }
     end,
   },
   {
