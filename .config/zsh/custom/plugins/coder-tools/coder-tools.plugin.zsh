@@ -73,14 +73,14 @@ qa-coder() {
 
     coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
       --parameter "csdev_branch=main" \
-      --parameter "use_prebuild=\"true\"" \
+      --parameter "use_prebuild=true" \
       --parameter "enable_dotfiles=false" \
       --parameter "shell=fish" || { echo "Error: Failed to create coder workspace." >&2;return 1;}
   fi
 
   # 3. Securely copy the setup script to the running workspace
   # echo "Copying setup script (${SCRIPT_FILE}) to workspace..."
-  # scp "${SCRIPT_FILE}" "${CODER_HOST}":~/ || { echo "Error: Failed to copy setup script." >&2; return 1; }
+  scp "${SCRIPT_FILE}" "${CODER_HOST}":~/ || { echo "Error: Failed to copy setup script." >&2; return 1; }
 
 
   SCRIPT_FILE="${HOME}/qa-setup.sh" # Assumes qa-setup.sh exists in the user's home directory
