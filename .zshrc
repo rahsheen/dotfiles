@@ -158,3 +158,6 @@ fi
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
+
+# Load local-only secrets if the file exists
+[[ -f ~/.zlocal ]] && source ~/.zlocal

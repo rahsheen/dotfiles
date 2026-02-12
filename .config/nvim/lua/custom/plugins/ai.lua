@@ -21,9 +21,37 @@ return {
     event = 'InsertEnter',
     config = function()
       require('copilot').setup {
-        suggestion = { enabled = false },
+        suggestion = {
+          enabled = true,
+          auto_trigger = false, -- This keeps it silent!
+          keymap = {
+            -- Set these to false to prevent the "Double Mapping" you saw
+            accept = false,
+            next = false,
+            prev = false,
+            dismiss = false,
+          },
+        },
         panel = { enabled = false },
+        filetypes = {
+          ['*'] = true, -- Enable for all filetypes
+        },
       }
+
+      -- Manual trigger for Copilot ghost text
+      vim.keymap.set('i', '<C-a>', function()
+        require('copilot.suggestion').next()
+      end, { desc = 'Trigger Copilot Suggestion' })
+
+      -- Force M-l to accept even if the internal keymap is failing
+      vim.keymap.set('i', '<C-l>', function()
+        if require('copilot.suggestion').is_visible() then
+          require('copilot.suggestion').accept()
+        else
+          -- Optional: If no suggestion, do what M-l normally does (or nothing)
+          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<M-l>', true, true, true), 'n', false)
+        end
+      end, { desc = 'Force Accept Copilot' })
     end,
   },
   {
