@@ -679,6 +679,7 @@ require('lazy').setup({
     config = function()
       require('catppuccin').setup {
         flavour = 'mocha',
+        auto_integrations = true,
         integrations = {
           cmp = true,
           gitsigns = true,
@@ -690,6 +691,27 @@ require('lazy').setup({
             indentscope_color = '',
           },
         },
+        custom_highlights = function(colors)
+          return {
+            -- 1. External Class/Module names (The "Coupled" objects)
+            -- This makes "User", "Order", or "ExternalService" glow Maroon.
+            ['@constant.ruby'] = { fg = colors.maroon, style = { 'bold' } },
+            ['@type.ruby'] = { fg = colors.maroon },
+
+            -- 2. Method Calls (The "Action" across the coupling)
+            -- Differentiates calling a method vs. defining one.
+            ['@function.call.ruby'] = { fg = colors.sky },
+
+            -- 3. Scope Resolution (The '::' operator)
+            -- Highlights deep nesting or reaching into namespaces.
+            ['@operator.ruby'] = { fg = colors.flamingo },
+
+            -- 4. Keep local logic muted
+            -- This ensures local variables don't distract from the coupling.
+            ['@variable.ruby'] = { fg = colors.text },
+            ['@variable.parameter.ruby'] = { fg = colors.subtext1, style = { 'italic' } },
+          }
+        end,
       }
 
       vim.cmd.colorscheme 'catppuccin'
@@ -773,10 +795,22 @@ require('lazy').setup({
       }
     end,
   },
-  {
+  { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    lazy = false,
     build = ':TSUpdate',
+    opts = {
+      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc', 'ruby' },
+      auto_install = true,
+      highlight = {
+        enable = true,
+        -- Required for Catppuccin to take full control
+        additional_vim_regex_highlighting = false,
+      },
+      indent = { enable = true },
+    },
+    config = function(_, opts)
+      require('nvim-treesitter.configs').setup(opts)
+    end,
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
