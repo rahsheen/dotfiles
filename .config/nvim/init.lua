@@ -117,7 +117,7 @@ if not vim.loop.fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
--- [[ Configure and install plugins ]]
+-- Adding custom ruby flag to lsp setup!
 --
 --  To check the current status of your plugins, run
 --    :Lazy
@@ -671,51 +671,6 @@ require('lazy').setup({
       fuzzy = { implementation = 'prefer_rust_with_warning' },
     },
     opts_extend = { 'sources.default' },
-  },
-  {
-    'catppuccin/nvim',
-    name = 'catppuccin',
-    priority = 1000,
-    config = function()
-      require('catppuccin').setup {
-        flavour = 'mocha',
-        auto_integrations = true,
-        integrations = {
-          cmp = true,
-          gitsigns = true,
-          nvimtree = true,
-          treesitter = true,
-          notify = false,
-          mini = {
-            enabled = true,
-            indentscope_color = '',
-          },
-        },
-        custom_highlights = function(colors)
-          return {
-            -- 1. External Class/Module names (The "Coupled" objects)
-            -- This makes "User", "Order", or "ExternalService" glow Maroon.
-            ['@constant.ruby'] = { fg = colors.maroon, style = { 'bold' } },
-            ['@type.ruby'] = { fg = colors.maroon },
-
-            -- 2. Method Calls (The "Action" across the coupling)
-            -- Differentiates calling a method vs. defining one.
-            ['@function.call.ruby'] = { fg = colors.sky },
-
-            -- 3. Scope Resolution (The '::' operator)
-            -- Highlights deep nesting or reaching into namespaces.
-            ['@operator.ruby'] = { fg = colors.flamingo },
-
-            -- 4. Keep local logic muted
-            -- This ensures local variables don't distract from the coupling.
-            ['@variable.ruby'] = { fg = colors.text },
-            ['@variable.parameter.ruby'] = { fg = colors.subtext1, style = { 'italic' } },
-          }
-        end,
-      }
-
-      vim.cmd.colorscheme 'catppuccin'
-    end,
   },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
