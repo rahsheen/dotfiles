@@ -471,6 +471,8 @@ require('lazy').setup({
       -- Ensure all language servers use a consistent offsetEncoding to prevent warnings
       local common_capabilities = {
         offsetEncoding = { 'utf-16' },
+        -- Add this line to satisfy Neovim 0.11+ and Copilot
+        general = { positionEncodings = { 'utf-16' } },
       }
 
       -- Extend the capabilities with the common settings
@@ -540,9 +542,15 @@ require('lazy').setup({
         },
       }
 
-      -- require('lspconfig')['gdscript'].setup { name = 'godot' }
+      -- vim.lsp.config('gdscript', {
+      --   capabilities = capabilities,
+      -- })
+      -- vim.lsp.enable 'gdscript'
+
+      vim.lsp.enable 'gdscript'
       vim.lsp.config('ruby_lsp', {
         cmd = { vim.fn.expand '~/.local/bin/launch-ruby-lsp.sh' },
+        capabilities = capabilities,
       })
       vim.lsp.enable 'ruby_lsp'
     end,
@@ -568,7 +576,7 @@ require('lazy').setup({
         lsp_fallback = true,
         exclude = { 'json' },
       },
-      log_level = vim.log.levels.DEBUG,
+      log_level = vim.log.levels.WARN,
       formatters = {
         rubocop_no_server = {
           -- Use the user's shell to execute the bundle command (or 'bundle' if in PATH)
@@ -754,6 +762,12 @@ require('lazy').setup({
     config = function(_, opts)
       require('nvim-treesitter').setup(opts)
     end,
+  },
+  {
+    'j-hui/fidget.nvim',
+    opts = {
+      -- options
+    },
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
