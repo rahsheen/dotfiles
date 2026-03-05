@@ -43,6 +43,10 @@ config checkout
 # 6. Hide untracked files so 'config status' only shows files you care about
 config config --local status.showUntrackedFiles no
 
+# 6.5 Explicitly set the core.worktree configuration variable in the bare repository's config file to help
+# tools like vim-fugitive 
+/usr/bin/git --git-dir=$HOME/.cfg config --local core.worktree $HOME
+
 # 7. Add the alias to your .bashrc or .zshrc for future use
 echo "alias config='/usr/bin/git --git-dir=\$HOME/.cfg/ --work-tree=\$HOME'" >> $HOME/.bashrc
 
