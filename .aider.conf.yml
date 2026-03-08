@@ -1,0 +1,32 @@
+model:           github_copilot/claude-sonnet-4.5
+weak-model:      github_copilot/gpt-5-mini
+show-model-warnings: false
+dark-mode: true
+watch-files: true
+vim: true
+
+## Attribute commits with aider's name/version?
+attribute-commits: false
+
+## Commits should include a 'Signed-off-by' line?
+# (Optional: set to false if you want clean messages)
+commit-attribute-user: false
+
+## Enable/disable the "Aider: " prefix in the subject line
+attribute-author: false
+
+attribute-co-authored-by: false
+
+## Automatically run these after every AI edit
+auto-test: true
+test-cmd: "~/bin/aider-test-runner.sh"
+
+auto-lint: true
+lint-cmd:
+  # Ruby/Rails: Prefers local rubocop if bundled
+  - "ruby: if [ -f Gemfile ]; then bundle exec rubocop --fix; else rubocop --fix; fi"
+  
+  # TS/React in Nx: Uses npx to find the local eslint without needing global install
+  - "typescript: npx eslint --fix"
+  - "javascript: npx eslint --fix"
+
