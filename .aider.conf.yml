@@ -1,32 +1,28 @@
-model:           github_copilot/claude-sonnet-4.5
-weak-model:      github_copilot/gpt-5-mini
+model: github_copilot/claude-sonnet-4.5
+weak-model: github_copilot/gpt-5-mini
 show-model-warnings: false
 dark-mode: true
 watch-files: true
 vim: true
 
-## Attribute commits with aider's name/version?
-attribute-commits: false
+## 1. THE "AGENTIC" OVERRIDES
+## These prevent Aider from asking "Should I fix this?" 
+## It will just see the error and start coding the fix immediately.
+yes-always: true
+auto-lint: true
+auto-test: true
 
-## Commits should include a 'Signed-off-by' line?
-# (Optional: set to false if you want clean messages)
-commit-attribute-user: false
-
-## Enable/disable the "Aider: " prefix in the subject line
-attribute-author: false
-
+## 2. ATTRIBUTION
 attribute-co-authored-by: false
 
-## Automatically run these after every AI edit
-auto-test: true
-test-cmd: "~/bin/aider-test-runner.sh"
-
-auto-lint: true
+## 3. LINTING CONFIGURATION
+## Note: Aider executes these sequentially or based on file extension matching.
 lint-cmd:
-  # Ruby/Rails: Prefers local rubocop if bundled
-  - "ruby: if [ -f Gemfile ]; then bundle exec rubocop --fix; else rubocop --fix; fi"
-  
-  # TS/React in Nx: Uses npx to find the local eslint without needing global install
+  - "ruby: if [ -f Gemfile ]; then bundle exec rubocop -A; else rubocop -A; fi"
   - "typescript: npx eslint --fix"
   - "javascript: npx eslint --fix"
 
+## 4. CONSOLIDATED TEST COMMAND
+## Combined your shell script and rspec into one execution flow.
+## Aider needs a single entry point that returns a 0 or 1 exit code.
+test-cmd: "~/.local/bin/aider-test-runner.sh"

@@ -437,16 +437,17 @@ require('lazy').setup({
           --  See `:help K` for why this keymap
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
-          -- WARN: This is not Goto Definition, this is Goto Declaration.
+          -- WARN: This is not Go to Definition, this is Go to Declaration.
           --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+
+          local client = vim.lsp.get_client_by_id(event.data.client_id)
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
           --    See `:help CursorHold` for information about when this is executed
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
-          -- local client = vim.lsp.get_client_by_id(event.data.client_id)
           -- if client and client.server_capabilities.documentHighlightProvider then
           --   vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
           --     buffer = event.buf,
@@ -458,6 +459,15 @@ require('lazy').setup({
           --     callback = vim.lsp.buf.clear_references,
           --   })
           -- end
+
+          -- Set up Markdown Oxide daily note commands
+          if client and client.name == 'markdown_oxide' then
+            vim.api.nvim_create_user_command('Daily', function(args)
+              local input = args.args
+
+              vim.lsp.buf.execute_command { command = 'jump', arguments = { input } }
+            end, { desc = 'Open daily note', nargs = '*' })
+          end
         end,
       })
 
@@ -506,6 +516,25 @@ require('lazy').setup({
         eslint = {},
         jsonls = {},
         tailwindcss = {},
+        harper_ls = {
+          settings = {
+            ['harper-ls'] = {
+              linters = {
+                SentenceCapitalization = false,
+                SpellCheck = false,
+              },
+            },
+          },
+        },
+        markdown_oxide = {
+          capabilities = {
+            workspace = {
+              didChangeWatchedFiles = {
+                dynamicRegistration = true,
+              },
+            },
+          },
+        },
       }
 
       -- Ensure the servers and tools above are installed

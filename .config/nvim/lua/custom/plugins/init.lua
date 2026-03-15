@@ -186,4 +186,14 @@ return {
     'tpope/vim-rails',
     dependencies = { 'tpope/vim-dispatch', 'tpope/vim-dadbod', 'tpope/vim-abolish', 'tpope/vim-bundler' },
   },
+  require('lazy').setup {
+    'nvimdev/lspsaga.nvim',
+    config = function()
+      require('lspsaga').setup {}
+    end,
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter', -- optional
+      'nvim-tree/nvim-web-devicons', -- optional
+    },
+  },
 }

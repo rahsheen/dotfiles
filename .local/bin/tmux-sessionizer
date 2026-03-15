@@ -3,7 +3,7 @@
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$(find ~/.config ~/Development ~/Development/* -mindepth 1 -maxdepth 4 -type d -prune -a ! -name "node_modules" | fzf)
+    selected=$(find ~/.config ~/mnt/dropbox/Obsidian ~/roadrunner ~/workspaces ~/Development ~/Development/* -mindepth 1 -maxdepth 4 -type d -prune -a ! -name "node_modules" | fzf)
 fi
 
 if [[ -z $selected ]]; then
