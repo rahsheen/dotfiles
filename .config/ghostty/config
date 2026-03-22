@@ -1,0 +1,11 @@
+# Core Font (set to Light as your base)
+font-family = "JetBrains Mono"
+font-style = "Light"
+
+# Specific Overrides for Bold and Italic
+font-style-bold = "Regular"
+font-style-italic = "Light Italic"
+font-style-bold-italic = "Italic"
+
+font-size = 14
+font-thicken = true

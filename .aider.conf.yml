@@ -18,7 +18,7 @@ attribute-co-authored-by: false
 ## 3. LINTING CONFIGURATION
 ## Note: Aider executes these sequentially or based on file extension matching.
 lint-cmd:
-  - "ruby: if [ -f Gemfile ]; then bundle exec rubocop -A; else rubocop -A; fi"
+  - "ruby: bundle exec rubocop -A"
   - "typescript: npx eslint --fix"
   - "javascript: npx eslint --fix"
 
