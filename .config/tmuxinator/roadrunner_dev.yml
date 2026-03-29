@@ -1,32 +1,50 @@
-name: roadrunner_dev
+<%
+  worktree = @args[0] || "staging"
+  
+  def project_root(project, worktree)
+    path = File.expand_path("~/roadrunner/#{project}/#{worktree}")
+    fallback = File.expand_path("~/roadrunner/#{project}/staging")
+    Dir.exist?(path) ? path : fallback
+  end
+
+  def source_env
+    '"[ -f .env ] && source .env"'
+  end
+%>
+
+name: <%= worktree %>
 root: ~/roadrunner
-pre: . ~/roadrunner/.env.secrets
 
 windows:
-  - roadrunner_apps:
+  - coyote:
+      root: <%= project_root("coyote", worktree) %> 
       layout: tiled
       panes:
         - commands:
-            - cd coyote
-            - bundle exec puma -p 9000 -C ./config/puma.rb
-        - commands:
-            - cd gemini
+            - cd ~/roadrunner/gemini
             - yarn start
-
-  - workers:
-      layout: main-horizontal
-      panes:
         - commands:
-            - cd coyote
-            - bundle exec sidekiq -C config/normal_worker.yml
-
-  - frontends:
-      layout: tiled
-      panes:
-        - commands:
-            - cd coyote
             - yarn start:container
         - commands:
-            - cd lyra
-            - yarn nx serve coyote-base
+            - <%= source_env %>
+            - bundle exec puma -p 9000 -C ./config/puma.rb
 
+  - workers:
+      root: <%= project_root("coyote", worktree) %> 
+      layout: tiled
+      panes:
+        - commands:
+            - bundle exec sidekiq -C config/normal_worker.yml
+        - commands:
+            - bundle exec sidekiq -C config/intacct_worker.yml
+        - commands:
+            - bundle exec sidekiq -C config/sidekiq/priority_queues_worker.yml
+        - commands:
+            - bundle exec sidekiq -C config/sidekiq/one_at_a_time_worker.yml
+
+  - lyra:
+      layout: tiled
+      root: <%= project_root("lyra", worktree) %> 
+      panes:
+        - commands:
+            - npx nx serve coyote-base

@@ -17,7 +17,7 @@ echo "Starting QA setup for branch: ${TARGET_BRANCH}"
 PROJECT_DIRS=("coyote" "lyra")
 
 for PROJECT in "${PROJECT_DIRS[@]}"; do
-    PROJECT_PATH="$HOME/${PROJECT}"
+    PROJECT_PATH="$HOME/workspace/${PROJECT}"
     
     if [ -d "${PROJECT_PATH}" ]; then
         echo "Checking out ${TARGET_BRANCH} in ${PROJECT}..."

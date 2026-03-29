@@ -159,5 +159,16 @@ export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 # initialise completions with ZSH's compinit
 # autoload -Uz compinit && compinit
 
+# Set Coder workspace autostop schedule once per boot.
+# /tmp is cleared on workspace stop/restart, so this fires on first shell open
+# after every workspace start — both initial creation and subsequent restarts.
+if [[ -n "$CODER_WORKSPACE_NAME" ]]; then
+    lock="/tmp/.coder-autostop-set"
+    if [[ ! -f "$lock" ]]; then
+        coder schedule stop "$CODER_WORKSPACE_OWNER_NAME/$CODER_WORKSPACE_NAME" 8h &>/dev/null &
+        touch "$lock"
+    fi
+fi
+
 # Load local-only secrets if the file exists
 [[ -f ~/.zlocal ]] && source ~/.zlocal

@@ -74,8 +74,8 @@ qa-coder() {
     coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
       --parameter "csdev_branch=main" \
       --parameter "use_prebuild=true" \
-      --parameter "enable_dotfiles=false" \
-      --parameter "shell=fish" || { echo "Error: Failed to create coder workspace." >&2;return 1;}
+      --parameter "enable_dotfiles=true" \
+      --parameter "shell=zsh" || { echo "Error: Failed to create coder workspace." >&2;return 1;}
   fi
 
   # 3. Securely copy the setup script to the running workspace

@@ -9,3 +9,5 @@ font-style-bold-italic = "Italic"
 
 font-size = 14
 font-thicken = true
+
+confirm-slow-paste = false

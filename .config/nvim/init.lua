@@ -516,16 +516,16 @@ require('lazy').setup({
         eslint = {},
         jsonls = {},
         tailwindcss = {},
-        harper_ls = {
-          settings = {
-            ['harper-ls'] = {
-              linters = {
-                SentenceCapitalization = false,
-                SpellCheck = false,
-              },
-            },
-          },
-        },
+        -- harper_ls = {
+        --   settings = {
+        --     ['harper-ls'] = {
+        --       linters = {
+        --         SentenceCapitalization = false,
+        --         SpellCheck = false,
+        --       },
+        --     },
+        --   },
+        -- },
         markdown_oxide = {
           capabilities = {
             workspace = {
