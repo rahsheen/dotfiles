@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "args": [
+        "-y",
+        "@sooperset/mcp-atlassian"
+      ],
+      "command": "npx",
+      "env": {
+        "CONFLUENCE_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
+        "CONFLUENCE_URL": "${ATLASSIAN_URL}/wiki",
+        "CONFLUENCE_USERNAME": "${ATLASSIAN_EMAIL}",
+        "JIRA_API_TOKEN": "${ATLASSIAN_API_TOKEN}",
+        "JIRA_URL": "${ATLASSIAN_URL}",
+        "JIRA_USERNAME": "${ATLASSIAN_EMAIL}"
+      }
+    },
+    "github": {
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "command": "npx",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}

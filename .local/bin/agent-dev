@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+# ai-dev: The Senior Engineer's Aider Dispatcher
+# Usage: ai-dev <command> [args]
+
+command = ARGV
+target = ARGV
+
+SKILLS_DIR = File.expand_path("~/skills")
+PLAN_FILE = "plan.md"
+
+def run_aider(args)
+  system("aider #{args}")
+end
+
+case command
+when "architect"
+  # 1. Fetch from Jira CLI (Vetted Ticket)
+  puts "🔍 Fetching ticket #{target}..."
+  ticket_body = `jira issue view #{target} --plain`
+  
+  # 2. Initialize the Plan (The 'Journey' scratchpad)
+  File.write(PLAN_FILE, "# Plan: #{target}\n\n## Jira Context\n#{ticket_body}\n\n---\n## TODO Checklist\n- [ ] ")
+  
+  puts "🏗️  Launching Architect Mode..."
+  # Load the Modified Grill Skill and focus on side-effects/design tree
+  run_aider("--read #{SKILLS_DIR}/grill-tech.md #{PLAN_FILE} --chat-mode ask")
+
+when "implement"
+  # 3. TDD Implementation Loop
+  puts "🧪 Launching TDD Implementation Mode..."
+  # Ensure Aider knows the plan and the TDD skill
+  run_aider("--read #{SKILLS_DIR}/tdd-rspec.md #{PLAN_FILE}")
+
+when "review"
+  # 4. Local PR Auditor
+  puts "🧐 Auditing local changes..."
+  # Capture the diff between current branch and main
+  diff = `git diff main...HEAD`
+  File.write(".aider.diff.tmp", diff)
+  
+  run_aider("--read #{SKILLS_DIR}/pr-reviewer.md --read .aider.diff.tmp --chat-mode ask")
+  File.delete(".aider.diff.tmp")
+
+else
+  puts "Usage: ai-dev [architect <JIRA-ID> | implement | review]"
+end
