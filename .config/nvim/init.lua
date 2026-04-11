@@ -441,7 +441,7 @@ require('lazy').setup({
           --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
-          local client = vim.lsp.get_client_by_id(event.data.client_id)
+          -- local client = vim.lsp.get_client_by_id(event.data.client_id)
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -461,13 +461,13 @@ require('lazy').setup({
           -- end
 
           -- Set up Markdown Oxide daily note commands
-          if client and client.name == 'markdown_oxide' then
-            vim.api.nvim_create_user_command('Daily', function(args)
-              local input = args.args
-
-              vim.lsp.buf.execute_command { command = 'jump', arguments = { input } }
-            end, { desc = 'Open daily note', nargs = '*' })
-          end
+          -- if client and client.name == 'markdown_oxide' then
+          --   vim.api.nvim_create_user_command('Daily', function(args)
+          --     local input = args.args
+          --
+          --     vim.lsp.buf.execute_command { command = 'jump', arguments = { input } }
+          --   end, { desc = 'Open daily note', nargs = '*' })
+          -- end
         end,
       })
 
@@ -526,15 +526,15 @@ require('lazy').setup({
         --     },
         --   },
         -- },
-        markdown_oxide = {
-          capabilities = {
-            workspace = {
-              didChangeWatchedFiles = {
-                dynamicRegistration = true,
-              },
-            },
-          },
-        },
+        -- markdown_oxide = {
+        --   capabilities = {
+        --     workspace = {
+        --       didChangeWatchedFiles = {
+        --         dynamicRegistration = true,
+        --       },
+        --     },
+        --   },
+        -- },
       }
 
       -- Ensure the servers and tools above are installed
