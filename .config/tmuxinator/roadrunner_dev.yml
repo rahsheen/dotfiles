@@ -7,13 +7,19 @@
     Dir.exist?(path) ? path : fallback
   end
 
+  def actual_root(worktree)
+    coyote_path = File.expand_path("~/roadrunner/coyote/#{worktree}")
+    lyra_path = File.expand_path("~/roadrunner/lyra/#{worktree}")
+    Dir.exist?(coyote_path) ? coyote_path : lyra_path
+  end
+
   def source_env
     '"[ -f .env ] && source .env"'
   end
 %>
 
 name: <%= worktree %>
-root: ~/roadrunner
+root: <%= actual_root(worktree) %>
 
 windows:
   - coyote:

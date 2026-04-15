@@ -2,8 +2,16 @@
 
 if [[ $# -eq 1 ]]; then
     selected=$1
+    key="enter" # Default behavior for manual arguments
 else
-    selected=$(find ~/.config ~/roadrunner ~/roadrunner/* ~/workspaces ~/Development ~/Development/* -mindepth 1 -maxdepth 4 -type d -prune -a ! -name "node_modules" | fzf)
+    # We use --expect to capture the key press
+    result=$(find ~/.config ~/roadrunner ~/roadrunner/* ~/workspaces ~/Development ~/Development/* \
+        -mindepth 1 -maxdepth 4 -type d -prune -a ! -name "node_modules" | \
+        fzf --expect=ctrl-o)
+    
+    # Extract the key pressed (first line) and the path (second line)
+    key=$(head -1 <<< "$result")
+    selected=$(sed -n '2p' <<< "$result")
 fi
 
 if [[ -z $selected ]]; then
@@ -13,11 +21,16 @@ fi
 selected_name=$(echo "$selected" | rev | cut -d'/' -f-3 | rev | tr . _)
 tmux_running=$(pgrep tmux)
 
-if [[ "$selected" == ~/roadrunner/coyote* ]] || [[ "$selected" == ~/roadrunner/lyra* ]]; then
-    tmuxinator start roadrunner_dev "$(basename "$selected")"
-    exit 0
+# --- THE LOGIC CHANGE ---
+# Only run tmuxinator if we DID NOT press ctrl-o
+if [[ "$key" != "ctrl-o" ]]; then
+    if [[ "$selected" == ~/roadrunner/coyote/* ]] || [[ "$selected" == ~/roadrunner/lyra/* ]]; then
+        tmuxinator start roadrunner_dev "$(basename "$selected")"
+        exit 0
+    fi
 fi
 
+# Standard session logic follows...
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
     tmux new-session -s "$selected_name" -c "$selected"
     exit 0

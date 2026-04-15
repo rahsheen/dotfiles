@@ -9,10 +9,10 @@ if [ -f "nx.json" ]; then
     echo "Running Nx tests for specific files..."
     # Convert spaces to commas for Nx --files flag
     NX_FILES=$(echo $FILES | tr ' ' ',')
-    npx nx affected -t test --base=origin/staging --files="$NX_FILES" --parallel=3
+    npx nx affected -t test --base=origin/staging --files="$NX_FILES" --parallel=3 --output-style=static --no-interactive --color=false --args="--reporter=summary --no-api"
   else
     echo "Running Nx affected tests (branch vs staging)..."
-    npx nx affected -t test --base=origin/staging --parallel=3
+    npx nx affected -t test --base=origin/staging --parallel=3 --output-style=static --no-interactive --color=false --args="--reporter=summary --no-api"
   fi
   exit $?
 fi
@@ -24,7 +24,7 @@ if [ -f "Gemfile" ]; then
   # If /spec exists, we are in an RSpec project
   if [ -d "spec" ]; then
     echo "Running RSpec on $FILES"
-    bundle exec rspec $FILES
+    rspec-smart-test $FILES
     exit $?
   # If /test exists, we are in a Minitest/Rails-default project
   elif [ -d "test" ]; then

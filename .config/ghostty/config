@@ -10,4 +10,10 @@ font-style-bold-italic = "Italic"
 font-size = 14
 font-thicken = true
 
-confirm-slow-paste = false
+# Allow programs to read/write to the system clipboard
+clipboard-read = allow
+clipboard-write = allow
+
+# This tells Ghostty to handle sequences even if they are wrapped for tmux
+term = xterm-256color
+copy-on-select = clipboard

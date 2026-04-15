@@ -582,6 +582,7 @@ require('lazy').setup({
         capabilities = capabilities,
       })
       vim.lsp.enable 'ruby_lsp'
+      vim.lsp.enable 'copilot_lsp'
     end,
   },
 

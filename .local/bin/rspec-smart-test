@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+# bin/smart-test
+require 'bundler/setup'
+require 'guard'
+require 'guard/commander'
+require 'active_support/inflector'
+
+# --- 1. CLI Parsing ---
+# Usage:
+# bin/smart-test (default: dirty files)
+# bin/smart-test --branch (diff against main)
+# bin/smart-test -b develop (diff against develop)
+# bin/smart-test --base staging (diff against staging)
+
+args = ARGV.join(' ')
+base_branch = "staging" # Default fallback
+
+if args =~ /--(?:branch|base)|-b/
+  # Look for a branch name immediately after the flag
+  # Regex looks for the flag and captures the next word if it doesn't start with '-'
+  match = ARGV.each_with_index.find { |a, i| a =~ /--(?:branch|base)|-b/ }
+  val = ARGV[ARGV.index(match[0]) + 1]
+  base_branch = val if val && val !~ /^-/
+
+  puts "Mode: Branch-wide check against '#{base_branch}'"
+  diff_cmd = "git diff #{base_branch}...HEAD --name-only"
+else
+  # Default Aider behavior: dirty files + fallback to last commit
+  puts "Mode: Incremental check (HEAD)"
+  diff_cmd = "git diff HEAD --name-only"
+end
+
+# --- 2. Determine File List ---
+files = `#{diff_cmd}`.split("\n")
+
+# Fallback for the default mode if no dirty files exist
+if !args.include?('-') && files.empty?
+  files = `git diff HEAD~1..HEAD --name-only`.split("\n")
+end
+
+changed_files = files.uniq.select { |f| File.exist?(f) }
+
+if changed_files.empty?
+  puts "No changes detected."
+  exit 0
+end
+
+# --- 3. Initialize Guard Logic ---
+begin
+  Guard.setup(notify: false)
+rescue SystemExit
+end
+
+rspec_plugins = Guard.state.session.plugins.all(:rspec)
+
+# --- 4. Resolve Specs ---
+resolved_paths = []
+rspec_plugins.each do |plugin|
+  matched = Guard::Watcher.match_files(plugin, changed_files)
+  resolved_paths.concat(matched) if matched
+end
+
+resolved_specs = resolved_paths.flatten.compact.uniq.select { |f| File.exist?(f) }
+
+# --- 5. Execution ---
+if resolved_specs.any?
+  puts "Running #{resolved_specs.count} specs..."
+  success = system("bundle exec rspec #{resolved_specs.join(' ')}")
+  exit(success ? 0 : 1)
+else
+  puts "No specs matched for these changes."
+  exit 0
+end
