@@ -23,7 +23,7 @@ tmux_running=$(pgrep tmux)
 
 # --- THE LOGIC CHANGE ---
 # Only run tmuxinator if we DID NOT press ctrl-o
-if [[ "$key" != "ctrl-o" ]]; then
+if [[ "$key" == "ctrl-o" ]]; then
     if [[ "$selected" == ~/roadrunner/coyote/* ]] || [[ "$selected" == ~/roadrunner/lyra/* ]]; then
         tmuxinator start roadrunner_dev "$(basename "$selected")"
         exit 0

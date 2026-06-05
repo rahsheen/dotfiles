@@ -26,3 +26,5 @@ vim.opt.mouse = 'v'
 
 vim.opt.conceallevel = 2
 vim.opt.laststatus = 3
+
+vim.opt.autoread = true

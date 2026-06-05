@@ -14,6 +14,8 @@ auto-test: true
 
 ## 2. ATTRIBUTION
 attribute-co-authored-by: false
+attribute-author: false
+attribute-committer: false
 
 ## 3. LINTING CONFIGURATION
 ## Note: Aider executes these sequentially or based on file extension matching.

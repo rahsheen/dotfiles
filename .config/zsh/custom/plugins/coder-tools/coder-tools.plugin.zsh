@@ -68,14 +68,25 @@ qa-coder() {
     # local AMI_PARAM_NAME="ami_name_prefix"
     # local AMI_DEFAULT_VALUE="csdev-main-ubuntu-jammy-amd64-"
     # --parameter "${AMI_PARAM_NAME}=${AMI_DEFAULT_VALUE}" \
+    PARAM_FILE=$(mktemp -t coder_params).yaml
+    cat > "${PARAM_FILE}" <<'EOF'
+service_selection: '["coyote","coyote-workers"]'
+csdev_branch: main
+use_prebuild: "true"
+enable_dotfiles: "true"
+shell: zsh
+EOF
 
     echo "Creating workspace from template ${TEMPLATE_NAME}..."
 
-    coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y \
-      --parameter "csdev_branch=main" \
-      --parameter "use_prebuild=true" \
-      --parameter "enable_dotfiles=true" \
-      --parameter "shell=zsh" || { echo "Error: Failed to create coder workspace." >&2;return 1;}
+    coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y --rich-parameter-file "${PARAM_FILE}" || {
+      echo "Error: Failed to create coder workspace." >&2
+          rm -f "${PARAM_FILE}"
+          return 1
+        }
+
+    rm -f "${PARAM_FILE}"
+
   fi
 
   # 3. Securely copy the setup script to the running workspace

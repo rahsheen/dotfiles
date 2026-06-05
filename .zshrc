@@ -74,7 +74,7 @@ eval "$(pyenv init --path)"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git fzf kubectl pyenv coder-tools)
+plugins=(git fzf kubectl pyenv coder-tools zsh-vi-mode)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -172,3 +172,7 @@ fi
 
 # Load local-only secrets if the file exists
 [[ -f ~/.zlocal ]] && source ~/.zlocal
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="/Users/rahsheenporter/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

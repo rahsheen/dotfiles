@@ -106,9 +106,3 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 [ ] No speculative features added
 ```
 
-## Aider-Specific Execution Rules 
-1. **No Hallucination:** If you cannot find the test runner or the existing spec directory, ASK before creating new ones.
-2. **The Terminal Handshake:** You are a pair programmer. After every RED and GREEN step, you MUST output the shell command I should run to verify. 
-   - Example: `Please run: bundle exec rspec spec/path/to/test_spec.rb`
-3. **Wait for Output:** Do not assume the test passed. Wait for me to paste the failure/success message.
-4. **Plan Update:** Every time a vertical slice is completed, update the `[ ]` checklist in `plan.md`.

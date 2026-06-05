@@ -1,85 +1,72 @@
 # 🛠 Skill: Decoupling ActiveRecord Callbacks via Service Objects
 
 ## Goal
-Eliminate "Callback Hell" by migrating complex business logic and side effects from ActiveRecord models into explicit **Service Objects** using the **Updater/Creator pattern**. This improves maintainability, testability, and the predictability of domain logic.
+Eliminate "Callback Hell" by migrating complex business logic and side effects from ActiveRecord models into explicit **Service Objects** using the **Updater/Creator pattern**. This improves maintainability and prevents side effects from causing transaction race conditions.
 
 ## Trigger Criteria
 Apply this skill when a model meets any of the following:
-* **High Complexity:** Analysis via `callback_hell` gem shows a score > 20.
-* **Implicit Logic:** Presence of `after_save`, `after_create`, or `after_commit` hooks containing business rules or multi-line logic.
-* **Network Side Effects:** Callbacks that hit external APIs (Stripe, AWS, Slack) or deliver mailers.
-* **Coupling:** Side effects are tied to the persistence lifecycle, causing transaction race conditions.
+* **Implicit Logic:** Presence of `after_save`, `after_create`, or `after_commit` hooks containing multi-line business rules.
+* **Network Side Effects:** Callbacks that hit external APIs or deliver mailers.
+* **High Complexity:** Analysis shows significant coupling between the persistence lifecycle and business processes.
 
 ---
 
-## 🗺️ Progress Tracking
-To maintain state across long-running refactors, the agent **must** maintain a local orchestration file:
-* **File:** Create `.refactor_plan.md` in the root directory before starting.
-* **Content:** Use GFM checkboxes (`- [ ]`) to list the model, the callbacks identified, the target service name, and all discovered call-sites.
-* **Lifecycle:** Update this file after every Phase. Delete the file only after all tests pass and call-sites are verified and user approves deletion.
+## 🗺️ Progress Tracking & Incrementalism
+
+### 1. The "plan.md" Requirement
+* **Mandatory File:** Create `plan.md` in the root directory before modifying any code.
+* **Content:** List the model, all discovered call-sites, and a checklist for every specific callback targeted for extraction.
+* **Incremental Updates:** Update this file after every phase; delete it only after the user approves final verification.
+
+### 2. The "Rule of One" (Incremental Progress)
+* **One at a Time:** Do not attempt to refactor multiple distinct side effects simultaneously.
+* **Workflow:** Complete the full lifecycle (Shim → Service → Call-site Update) for **one** specific callback before starting the next.
+* **Reasoning:** Migrating multiple callbacks at once (e.g., MGP refresh and Portal sync) often leads to context window overload and logic errors.
 
 ---
 
-## 📂 Discovery & Naming Convention
-
-### 1. Pre-Implementation Audit (Anti-Duplicate Check)
-Before creating a new file, you **must** check if a similar object already exists:
-* **Search Strategy:** Run `find app/ -name "*<domain>*"` and `grep -r "<ModelName>"` to find existing logic.
-* **Legacy Paths:** Audit `app/classes/`, `app/services/`, and `app/commands/`.
-* **Action:** If a class like `Location::Updater` exists, refactor it into the new pattern rather than creating a duplicate.
-
-### 2. Standardization
-* **Namespace:** Services must be namespaced by domain (e.g., `Billing::`, `Users::`).
-* **File Naming:** Use `creator.rb` for new records and `updater.rb` for existing records.
-* **Class Pattern:** `<Domain>::Creator` or `<Domain>::Updater`.
-* **Result Object:** Must return a `Struct.new(:success?, :record, :errors)`.
-
----
-
-## 🏗 Architectural Standards
-
-### 1. Principle of Minimalism
-* **Universal Logic Only:** Only move logic to the Service Object if it is **required for every instance** of that domain action.
-* **Preserve Call-Site Specificity:** Do not pull logic into the Service that is unique to a single Controller or Job.
-* **Callback Focus:** The primary goal is to extract **existing model callbacks**, not to move all controller code into a service.
-
-### 2. Logic Classification
-| Category | Examples | Action | Why? |
-| :--- | :--- | :--- | :--- |
-| **Data Integrity** | Formatting, setting defaults, normalization. | **KEEP IN MODEL** | Ensures data is correct regardless of entry point. |
-| **Business Logic** | Creating associated records, calculating totals. | **MOVE TO SERVICE** | These are processes, not inherent properties. |
-| **Side Effects** | Emails, Slack pings, API updates. | **MOVE TO SERVICE** | Prevents expensive calls from blocking DB transactions. |
-| **Dispatching** | Enqueuing a job via `after_commit`. | **KEEP IN MODEL** | This is the intended, decoupled use case for `after_commit`. |
-
----
-
-## 🚀 Execution Workflow
-
-### Phase 0: Planning & Checkpointing
-1. **Create `.refactor_plan.md`:** List the target model, the specific callbacks to be moved, and all call-sites discovered via `grep`.
-2. **Audit Existing Specs:** Check if current tests cover the callback side effects.
-3. **Characterization Tests:** **Only** if existing coverage is missing, create a temporary spec to document baseline side effects.
+## 🏗 Execution Workflow
 
 ### Phase 1: The Extraction Pattern (The "Shim")
-1. **Granular Flags:** Add specifically named virtual attributes to the model (e.g., `attr_accessor :skip_geocode_callback`).
-2. **Gate Legacy Hooks:** Update the model callback: `after_save :trigger_geocode, unless: :skip_geocode_callback`.
+* **Granular Flags:** Add specifically named virtual attributes to the model to act as "gates".
+* **Standard Template:**
+  ```ruby
+  attr_accessor :skip_side_effect_callback #
+  after_commit :trigger_logic, unless: :skip_side_effect_callback #
+  ```
+
+
+#### 📂 Discovery & Tool Safety
+
+##### 1. Pre-Implementation Audit
+  * **Anti-Duplicate Check:** Search for existing logic in `app/classes/` or `app/services/` before creating new files.
+  * **Refactor, Don't Duplicate:** If a class like `Location::Updater` exists, refactor it into the new pattern rather than creating a duplicate.
+
+##### 2. Search Safety Guardrails
+  * **Shell Command Isolation:** When requesting search results from the user, **never** place shell commands (e.g., `grep`, `find`) inside a code-edit block targeting an existing source file.
+  * **Instructional Clarity:** Clearly state: "Please run these commands in your terminal" to prevent accidental file overwrites.
+  * **Aider Protocol:** Use `/run` for shell commands if the environment supports it; otherwise, wait for user input before editing code.
+  * Requesting Info: If you need the user to run search commands, provide them in a clear text block. Do not use a filename header for these blocks, as this triggers "edit format" errors in Aider.
+  * Drafting the Plan: Once you receive search results, your next step is always to update the plan.md with the new findings.
+
+---
+
 
 ### Phase 2: Implementation (The "Orchestrator")
-1. **Transaction Boundary:** Use `ActiveRecord::Base.transaction` only for database writes that require atomic rollback.
-2. **Post-Commit Logic:** Move Emails and API calls **outside** the transaction block.
-3. **Idempotency:** Use `find_or_create_by` logic for services that may be retried in jobs.
+* **Result Object:** Services must return a `Struct.new(:success?, :record, :errors)`.
+* **Post-Commit Logic:** Move Emails and API calls **outside** the transaction block to prevent blocking database connections.
+* **Minimalism:** Only move logic to the Service that is required for every instance of that domain action.
 
 ### Phase 3: Exhaustive Call-Site Replacement
-1. **Search & Update:** Replace all instances of `.create`, `.save`, and `.update` for the model.
-2. **The Reach:** Specifically audit `app/controllers/` and all nested directories (e.g., `app/controllers/api/`).
-3. **Validation:** Check off each call-site in `.refactor_plan.md` as they are updated.
+* **Exhaustive Search:** Audit `app/controllers/` and all nested directories (e.g., `app/controllers/api/`) for every instance of `.create`, `.save`, and `.update`.
+* **Validation:** Verify each call-site against the `plan.md` checklist.
 
 ---
 
 ## ⚠️ Red Flag Checklist (Mandatory for Agents)
-* [ ] **Plan Created?** Did you initialize and update `.refactor_plan.md`?
-* [ ] **Minimalist Changes?** Does the Service only contain logic universal to the domain action?
-* [ ] **Correct naming?** Did you use `creator.rb` or `updater.rb`?
-* [ ] **Nested Controllers found?** Did you check `app/controllers/api/` for call-sites?
-* [ ] **Network in transaction?** Ensure no API or Mailer calls are inside the `transaction` block.
-* [ ] **Using `save!`?** Use the bang version so exceptions trigger the `rescue` block.
+* [ ] **Incrementalism Check:** Am I focusing on only **one** callback at this moment?
+* [ ] **Shell Safety:** Are my `grep` commands isolated from my code-edit blocks?
+* [ ] **Plan Initialized?** Is the `plan.md` created and updated?
+* [ ] **Correct naming?** Did I use `creator.rb` or `updater.rb`?
+* [ ] **Network in transaction?** Are API or Mailer calls outside the `transaction` block?
+* [ ] **Using `save!`?** Does the Service use the bang version to trigger the `rescue` block?

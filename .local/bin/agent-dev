@@ -10,7 +10,7 @@ SKILLS_DIR = File.expand_path("~/.agents/skills")
 PLAN_FILE = "plan.md"
 
 def run_aider(args)
-  system("aider #{args}")
+  system("aider --chat-history-file /dev/null --no-restore-chat-history #{args}")
 end
 
 case command
@@ -33,15 +33,24 @@ when "implement"
   run_aider("--read #{SKILLS_DIR}/tdd/SKILL.md #{PLAN_FILE}")
 
 when "review"
-  # 4. Local PR Auditor
   puts "🧐 Auditing local changes..."
-  # Capture the diff between current branch and main
-  diff = `git diff main...HEAD`
+  diff = `git diff origin/staging...HEAD`
   File.write(".aider.diff.tmp", diff)
 
-  run_aider("--read #{SKILLS_DIR}/pr-reviewer.md --read .aider.diff.tmp --chat-mode ask")
-  File.delete(".aider.diff.tmp")
+  REVIEW_PROMPT = "Use our rails-reviewer skill to provide feedback on the included diff. " \
+                  "Check for regressions or missed test cases. " \
+                  "Write your full analysis into 'rails-review.md'. " \
+                  "Do not output the review to the chat, just write the rails-review.md file."
 
+  run_aider(
+    "--chat-mode ask " \
+    "--read #{SKILLS_DIR}/rails-reviewer.md " \
+    "--read .aider.diff.tmp " \
+    "--file rails-review.md " \
+    "--message \"#{REVIEW_PROMPT}\""
+  )
+
+  File.delete(".aider.diff.tmp")
 else
   puts "Usage: ai-dev [architect <JIRA-ID> | implement | review]"
 end

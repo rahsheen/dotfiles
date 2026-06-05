@@ -25,18 +25,13 @@ if args =~ /--(?:branch|base)|-b/
   puts "Mode: Branch-wide check against '#{base_branch}'"
   diff_cmd = "git diff #{base_branch}...HEAD --name-only"
 else
-  # Default Aider behavior: dirty files + fallback to last commit
-  puts "Mode: Incremental check (HEAD)"
-  diff_cmd = "git diff HEAD --name-only"
+  # Default: dirty files + last committed changes (HEAD~1 covers both)
+  puts "Mode: Incremental check (HEAD~1 → working tree)"
+  diff_cmd = "git diff HEAD~2 --name-only"
 end
 
 # --- 2. Determine File List ---
 files = `#{diff_cmd}`.split("\n")
-
-# Fallback for the default mode if no dirty files exist
-if !args.include?('-') && files.empty?
-  files = `git diff HEAD~1..HEAD --name-only`.split("\n")
-end
 
 changed_files = files.uniq.select { |f| File.exist?(f) }
 
@@ -60,12 +55,12 @@ rspec_plugins.each do |plugin|
   resolved_paths.concat(matched) if matched
 end
 
-resolved_specs = resolved_paths.flatten.compact.uniq.select { |f| File.exist?(f) }
+resolved_specs = resolved_paths.flatten.compact.uniq.select { |f| File.file?(f) }
 
 # --- 5. Execution ---
 if resolved_specs.any?
-  puts "Running #{resolved_specs.count} specs..."
-  success = system("bundle exec rspec #{resolved_specs.join(' ')}")
+  puts "Running #{resolved_specs} specs..."
+  success = system("RAILS_ENV=test bundle exec rspec #{resolved_specs.join(' ')}")
   exit(success ? 0 : 1)
 else
   puts "No specs matched for these changes."
