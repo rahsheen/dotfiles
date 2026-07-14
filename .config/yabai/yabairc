@@ -23,3 +23,8 @@ yabai -m rule --add app="^Calculator$" manage=off
 # Set Obsidian to always float and be sticky (visible on all spaces)
 yabai -m rule --add app="^Obsidian$" manage=off
 
+# 1. Tell yabai to float everything from Zoom by default (safeguards popups/tooltips)
+yabai -m rule --add app="^zoom\.us$" manage=off
+
+# 2. Explicitly force ONLY Zoom's main standard windows to tile
+yabai -m rule --add app="^zoom\.us$" role="AXWindow" subrole="AXStandardWindow" manage=on
