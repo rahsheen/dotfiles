@@ -516,6 +516,17 @@ require('lazy').setup({
         eslint = {},
         jsonls = {},
         tailwindcss = {},
+        yamlls = {
+          -- Schema validation for YAML. SchemaStore auto-maps the GitHub Workflow schema to
+          -- .github/workflows/*.{yml,yaml}, so structural mistakes (e.g. a job whose `steps`
+          -- got mis-nested under `strategy`) surface as live diagnostics.
+          settings = {
+            yaml = {
+              schemaStore = { enable = true },
+              validate = true,
+            },
+          },
+        },
         -- harper_ls = {
         --   settings = {
         --     ['harper-ls'] = {
@@ -550,6 +561,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format lua code
+        'actionlint', -- Lints GitHub Actions workflows (surfaced via nvim-lint)
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 

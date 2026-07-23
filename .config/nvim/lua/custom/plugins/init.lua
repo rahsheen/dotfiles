@@ -1,4 +1,25 @@
 return {
+  { -- Lint GitHub Actions workflows with actionlint (clearer messages than the yamlls schema).
+    'mfussenegger/nvim-lint',
+    event = 'VeryLazy',
+    config = function()
+      local lint = require 'lint'
+      lint.linters_by_ft = { yaml = { 'actionlint' } }
+
+      -- actionlint is only meaningful for workflow files, so gate on the path inside the
+      -- callback (autocmd path patterns are unreliable). Includes BufReadPost so it runs on
+      -- open, not just save.
+      vim.api.nvim_create_autocmd({ 'BufWritePost', 'BufReadPost', 'InsertLeave' }, {
+        group = vim.api.nvim_create_augroup('nvim-lint-actions', { clear = true }),
+        callback = function(args)
+          local name = vim.api.nvim_buf_get_name(args.buf)
+          if name:match '%.github/workflows/.*%.ya?ml$' then
+            lint.try_lint()
+          end
+        end,
+      })
+    end,
+  },
   {
     'ThePrimeagen/refactoring.nvim',
     dependencies = {
