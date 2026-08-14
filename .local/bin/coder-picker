@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+selected=$(coder ls -o json|jq -r '.[] | .name' | fzf)
+
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+# If arguments were passed, use them as the command to run
+if [[ $# -gt 0 ]]; then
+    cmd=$@
+else
+    cmd="ssh"
+fi
+
+coder $cmd $selected
