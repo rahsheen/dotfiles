@@ -130,3 +130,22 @@ if [[ -z `command -v fzf` ]]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
   ~/.fzf/install
 fi
+
+# Install Claude Code if missing (native installer, lands in ~/.local/bin)
+if [[ -z `command -v claude` ]]; then
+  echo "Claude Code is not installed. Running installation..."
+
+  if command -v curl > /dev/null; then
+    curl -fsSL https://claude.ai/install.sh | bash
+
+    if [ $? -eq 0 ]; then
+      echo "Claude Code installed successfully."
+    else
+      echo "ERROR: Claude Code installation failed."
+    fi
+  else
+    echo "ERROR: 'curl' command is not found. Cannot download Claude Code installer."
+  fi
+else
+  echo "Claude Code is already installed ($(claude --version))."
+fi
