@@ -131,6 +131,18 @@ if [[ -z `command -v fzf` ]]; then
   ~/.fzf/install
 fi
 
+# Install zsh-vi-mode custom plugin if missing (.zshrc lists it in plugins=())
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.config/zsh/custom}"
+if [ ! -f "$ZSH_CUSTOM/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
+  echo "zsh-vi-mode is not installed. Cloning..."
+  mkdir -p "$ZSH_CUSTOM/plugins"
+  rm -rf "$ZSH_CUSTOM/plugins/zsh-vi-mode"
+  git clone --depth 1 https://github.com/jeffreytse/zsh-vi-mode.git \
+    "$ZSH_CUSTOM/plugins/zsh-vi-mode"
+else
+  echo "zsh-vi-mode is already installed."
+fi
+
 # Install Claude Code if missing (native installer, lands in ~/.local/bin)
 if [[ -z `command -v claude` ]]; then
   echo "Claude Code is not installed. Running installation..."
