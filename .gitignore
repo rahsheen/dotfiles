@@ -12,9 +12,15 @@ undodir
 !.claude/hooks/
 
 # Skills are either skillsync symlinks (regenerated from
-# ~/.config/agent-skills/sources.json) or our own, whose home is still undecided.
-# Re-include the directory so git will descend, then exclude its contents.
+# ~/.config/agent-skills/sources.json) or our own. Re-include the directory so
+# git will descend, exclude its contents, then re-include the ones we author.
 !.claude/skills/
 .claude/skills/*
+!.claude/skills/e2e-playwright/
+!.claude/skills/ticket-readiness/
+!.claude/skills/pr-jira-status/
+
+# bragdoc is deliberately NOT tracked: references/rr-rubric.md is a verbatim
+# export of an internal competency matrix and this repo is public.
 
 **/__pycache__/
