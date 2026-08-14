@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+#
+# qa-coder — Idempotently create/start a Coder workspace from a Jira branch
+# name and run the remote QA setup script against a target branch.
+#
+# Usage: qa-coder <jira-branch-name> [template]
+# Example: qa-coder PT-840-Incorrect-floor-cap-showing acme
+
+set -uo pipefail
+
+# --- Helpers ---------------------------------------------------------------
+
+# Safely resolve the current Coder username.
+# `coder whoami` prints: "You're authenticated as rporter !"
+# so the username is the second-to-last field; strip any punctuation.
+get_coder_username() {
+  coder whoami 2>/dev/null \
+    | grep 'authenticated as' \
+    | awk '{print $(NF-1)}' \
+    | tr -d '[:punct:]'
+}
+
+# --- Argument parsing ------------------------------------------------------
+
+if [ -z "${1:-}" ]; then
+  echo "Usage: qa-coder <jira-branch-name> [template]" >&2
+  echo "Example: qa-coder PT-840-Incorrect-floor-cap-showing" >&2
+  exit 1
+fi
+
+FULL_BRANCH_NAME="$1"
+TEMPLATE_NAME="${2:-acme}"        # Template name, defaults to 'acme'
+SCRIPT_FILE="${HOME}/qa-setup.sh" # Remote setup script, expected in $HOME
+
+if [ ! -f "${SCRIPT_FILE}" ]; then
+  echo "Error: required setup script '${SCRIPT_FILE}' not found." >&2
+  echo "Please ensure ~/qa-setup.sh exists before running." >&2
+  exit 1
+fi
+
+# Parse the ticket ID (e.g. PT-840) from the start of the branch name.
+if [[ "${FULL_BRANCH_NAME}" =~ ^([A-Z]+-[0-9]+) ]]; then
+  TICKET_ID="${BASH_REMATCH[1]}"
+else
+  echo "Error: could not parse ticket ID from branch name: ${FULL_BRANCH_NAME}" >&2
+  exit 1
+fi
+
+CODER_USER="$(get_coder_username)"
+if [ -z "${CODER_USER}" ]; then
+  echo "Error: could not determine Coder username. Is the 'coder' CLI configured?" >&2
+  exit 1
+fi
+
+WORKSPACE_NAME="${TICKET_ID}-qa-review"
+FULL_WORKSPACE_NAME="${CODER_USER}/${WORKSPACE_NAME}"
+CODER_HOST="coder.${WORKSPACE_NAME}"
+
+echo "--- 🛠️  Starting Idempotent Coder QA Setup ---"
+echo "Workspace Name: ${FULL_WORKSPACE_NAME}"
+echo "Target Branch:  ${FULL_BRANCH_NAME}"
+echo "Template:       ${TEMPLATE_NAME}"
+
+# --- Workspace parameters --------------------------------------------------
+# Written once and passed to every coder build command (create/start/restart)
+# so the workspace never prompts interactively. dotfiles_uri is required by
+# the dotfiles module (registry dotfiles/coder >= 1.4.x) whenever
+# enable_dotfiles is true — omitting it is what triggers the prompt.
+
+PARAM_FILE="$(mktemp -t coder_params).yaml"
+trap 'rm -f "${PARAM_FILE}"' EXIT
+cat > "${PARAM_FILE}" <<'EOF'
+service_selection: '["coyote","coyote-workers"]'
+csdev_branch: main
+use_prebuild: "true"
+enable_dotfiles: "true"
+dotfiles_uri: "https://github.com/rahsheen/dotfiles"
+dotfiles_branch: main
+shell: zsh
+EOF
+
+# --- Idempotency check & workspace management ------------------------------
+
+WORKSPACE_LINE="$(coder list 2>/dev/null | grep "${FULL_WORKSPACE_NAME}")"
+
+if [ -n "${WORKSPACE_LINE}" ]; then
+  # Workspace exists — STATUS is the 3rd column of `coder list`.
+  WORKSPACE_STATUS="$(echo "${WORKSPACE_LINE}" | awk '{print $3}')"
+
+  case "${WORKSPACE_STATUS}" in
+    Started)
+      echo "✅ Workspace '${WORKSPACE_NAME}' already RUNNING. Proceeding to config."
+      ;;
+    Stopped)
+      echo "🟡 Workspace '${WORKSPACE_NAME}' exists but is STOPPED. Starting now..."
+      coder start "${WORKSPACE_NAME}" -y --rich-parameter-file "${PARAM_FILE}" || {
+        echo "Error: failed to start workspace." >&2
+        exit 1
+      }
+      ;;
+    Failed)
+      echo "❌ Workspace '${WORKSPACE_NAME}' is in a FAILED state. Restarting..."
+      coder restart "${WORKSPACE_NAME}" -y --rich-parameter-file "${PARAM_FILE}" || {
+        echo "Error: failed to restart workspace." >&2
+        exit 1
+      }
+      ;;
+    *)
+      echo "🟡 Workspace '${WORKSPACE_NAME}' exists with status: ${WORKSPACE_STATUS}. Proceeding to config."
+      ;;
+  esac
+else
+  # Workspace does not exist — create it from the template.
+  echo "➕ Workspace '${WORKSPACE_NAME}' does not exist. Creating now..."
+  echo "Creating workspace from template ${TEMPLATE_NAME}..."
+  coder create "${WORKSPACE_NAME}" -t "${TEMPLATE_NAME}" -y --rich-parameter-file "${PARAM_FILE}" || {
+    echo "Error: failed to create coder workspace." >&2
+    exit 1
+  }
+fi
+
+# --- Remote setup ----------------------------------------------------------
+
+# Copy the setup script to the workspace (relies on `coder config-ssh` hosts).
+scp "${SCRIPT_FILE}" "${CODER_HOST}":~/ || {
+  echo "Error: failed to copy setup script." >&2
+  exit 1
+}
+
+# Stream and execute it remotely, passing the branch name via env.
+echo "Executing branch checkout commands remotely..."
+cat "${SCRIPT_FILE}" | ssh -t "${CODER_HOST}" \
+  "env BRANCH_NAME=\"${FULL_BRANCH_NAME}\" bash -s" || {
+  echo "Error: remote script execution failed." >&2
+  exit 1
+}
+
+echo "--- ✅ Workspace Setup Complete ---"
