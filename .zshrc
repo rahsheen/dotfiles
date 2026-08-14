@@ -65,9 +65,13 @@ ZSH_THEME="bira"
 # Would you like to use another custom folder than $ZSH/custom?
 export ZSH_CUSTOM="$HOME/.config/zsh/custom"
 
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
+# Put pyenv on PATH only if it's actually installed. The oh-my-zsh 'pyenv'
+# plugin below does the real init (shims, prompt info) and no-ops when pyenv
+# is missing, so don't call `pyenv init` here.
+if [[ -d "$HOME/.pyenv/bin" ]]; then
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+fi
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
