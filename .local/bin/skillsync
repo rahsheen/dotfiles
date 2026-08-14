@@ -1,0 +1,320 @@
+#!/usr/bin/env bash
+#
+# skillsync — install Claude Code plugins/skills from local git clones.
+#
+# Third-party marketplaces are blocked by enterprise policy, but a marketplace is
+# only a delivery mechanism: skills, commands and agents all have plain user-level
+# equivalents that load with no policy check. This reads each clone's own manifest
+# (.claude-plugin/marketplace.json or plugin.json) and installs from it.
+#
+#   skillsync --dry-run              # show what would happen (do this first)
+#   skillsync                        # install / update / prune
+#   skillsync --adopt layered-rails  # replace a pre-existing copy (backed up first)
+#   skillsync --list                 # show what skillsync currently owns
+#
+# Update flow:  cd <clone> && git pull && skillsync
+#
+# Skills are symlinked, so a pull is live immediately. Commands and agents are
+# copied because their plugin-relative links (`](../skills/...)`,
+# ${CLAUDE_PLUGIN_ROOT}) only resolve inside a plugin root; they get rewritten to
+# absolute paths on copy.
+#
+# Safety: skillsync only ever touches paths recorded in its own manifest
+# (~/.claude/.skillsync.json). Anything it didn't create is skipped and reported,
+# never overwritten.
+
+set -euo pipefail
+
+ROOT="${SKILLSYNC_ROOT:-$HOME/Development/agent-skills}"
+SKILLS_DIR="${SKILLSYNC_SKILLS_DIR:-$HOME/.claude/skills}"   # Claude Code's native user-skills dir
+CMD_DIR="${SKILLSYNC_CMD_DIR:-$HOME/.claude/commands}"
+AGENT_DIR="${SKILLSYNC_AGENT_DIR:-$HOME/.claude/agents}"
+MANIFEST="${SKILLSYNC_MANIFEST:-$HOME/.claude/.skillsync.json}"
+BACKUP_ROOT="${SKILLSYNC_BACKUP_DIR:-$HOME/.claude/skills-local}"
+
+# Agent names that Claude Code (or this harness) already provides. Installing an
+# agent with one of these frontmatter names would shadow the built-in.
+RESERVED_AGENTS="general-purpose Explore Plan claude claude-code-guide statusline-setup"
+
+DRY_RUN=0
+LIST_ONLY=0
+ADOPT=""
+STAMP="$(date +%Y%m%d-%H%M%S)"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -n|--dry-run) DRY_RUN=1 ;;
+    --list)       LIST_ONLY=1 ;;
+    --adopt)      ADOPT="$ADOPT ${2//,/ }"; shift ;;
+    --adopt=*)    ADOPT="$ADOPT ${1#--adopt=}"; ADOPT="${ADOPT//,/ }" ;;
+    -h|--help)    sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "skillsync: unknown option $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+command -v jq   >/dev/null || { echo "skillsync: jq is required" >&2; exit 1; }
+command -v perl >/dev/null || { echo "skillsync: perl is required (rewrite_into)" >&2; exit 1; }
+
+WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
+DESIRED="$WORK/desired"      # kind \t target \t source \t plugin_root
+OWNED="$WORK/owned"          # kind \t target \t source (from manifest)
+NEXT="$WORK/next"            # manifest to write
+NOTES="$WORK/notes"          # deferred warnings, printed at the end
+: >"$DESIRED"; : >"$OWNED"; : >"$NEXT"; : >"$NOTES"
+
+note() { printf '%s\n' "$*" >>"$NOTES"; }
+adopting() { # match with or without the .md suffix
+  case " $ADOPT " in *" $1 "*|*" ${1%.md} "*) return 0 ;; *) return 1 ;; esac
+}
+
+if [ -f "$MANIFEST" ]; then
+  jq -r '.entries[]? | [.kind, .target, .source] | @tsv' "$MANIFEST" >"$OWNED"
+fi
+
+if [ "$LIST_ONLY" = 1 ]; then
+  if [ -s "$OWNED" ]; then
+    printf '%-8s %s\n' KIND TARGET
+    while IFS=$'\t' read -r kind target source; do
+      printf '%-8s %s\n         <- %s\n' "$kind" "$target" "$source"
+    done <"$OWNED"
+  else
+    echo "skillsync owns nothing yet (no $MANIFEST)"
+  fi
+  exit 0
+fi
+
+owns() { cut -f2 "$OWNED" | grep -qxF "$1"; }
+
+# Rewrite plugin-relative references to absolute paths so a command/agent still
+# resolves its workflow files outside a plugin root.
+rewrite_into() { # src plugin_root dest
+  SRCDIR="$(dirname "$1")" PLUGIN_ROOT="$2" perl -pe '
+    use File::Spec; use Cwd qw(abs_path);
+    sub A { my $p = File::Spec->rel2abs($_[0], $ENV{SRCDIR});
+            my $r = abs_path($p); return defined $r ? $r : File::Spec->canonpath($p); }
+    s{\]\((\.{1,2}/[^)\s]+)\)}{"](" . A($1) . ")"}ge;
+    s{\$\{CLAUDE_PLUGIN_ROOT\}}{$ENV{PLUGIN_ROOT}}g;
+    s{\$CLAUDE_PLUGIN_ROOT\b}{$ENV{PLUGIN_ROOT}}g;
+  ' "$1" >"$3"
+}
+
+# ---------------------------------------------------------------- discovery ---
+
+# Emit "plugin_name \t plugin_root_relative" for a repo.
+plugin_entries() {
+  local repo="$1" mk="$1/.claude-plugin/marketplace.json"
+  if [ -f "$mk" ]; then
+    jq -r '.plugins[]? | [(.name // "unnamed"), (.source // "./")] | @tsv' "$mk"
+  elif [ -f "$repo/.claude-plugin/plugin.json" ]; then
+    jq -r --arg fb "$(basename "$repo")" '[(.name // $fb), "./"] | @tsv' \
+      "$repo/.claude-plugin/plugin.json"
+  else
+    printf '%s\t./\n' "$(basename "$repo")"
+  fi
+}
+
+# Declared paths for one key ("skills"/"commands"/"agents"), marketplace entry
+# first (claude-essentials puts them there), then plugin.json (mattpocock does).
+declared() { # repo plugin_name plugin_root key
+  local repo="$1" pname="$2" proot="$3" key="$4" out=""
+  local mk="$repo/.claude-plugin/marketplace.json" pj="$3/.claude-plugin/plugin.json"
+  if [ -f "$mk" ]; then
+    out="$(jq -r --arg n "$pname" --arg k "$key" \
+      '.plugins[]? | select(.name==$n) | (.[$k] // []) | .[]' "$mk")"
+  fi
+  if [ -z "$out" ] && [ -f "$pj" ]; then
+    out="$(jq -r --arg k "$key" '(.[$k] // []) | .[]' "$pj")"
+  fi
+  printf '%s' "$out"
+}
+
+repo_disabled() { # a <repo>.skillsync file containing the line "disabled" skips the repo entirely
+  local filt="$ROOT/$(basename "$1").skillsync"
+  [ -f "$filt" ] && grep -qx "disabled" "$filt"
+}
+
+excluded() { # repo_dir rel_path — honours <repo>.skillsync exclusion lines ("-glob")
+  local filt="$ROOT/$(basename "$1").skillsync" rel="$2" line
+  [ -f "$filt" ] || return 1
+  while read -r line; do
+    case "$line" in
+      -*) case "$rel" in ${line#-}) return 0 ;; esac ;;
+    esac
+  done <"$filt"
+  return 1
+}
+
+echo "==> scanning $ROOT"
+for repo in "$ROOT"/*/; do
+  repo="${repo%/}"
+  [ -d "$repo/.git" ] || continue
+  if repo_disabled "$repo"; then
+    echo "--> $(basename "$repo")  [disabled by $(basename "$repo").skillsync]"
+    continue
+  fi
+  echo "--> $(basename "$repo")"
+
+  while IFS=$'\t' read -r pname psrc; do
+    [ -n "$pname" ] || continue
+    proot="$(cd "$repo/${psrc#./}" 2>/dev/null && pwd)" || {
+      note "WARN  $pname: source '$psrc' does not exist in $(basename "$repo")"; continue; }
+    echo "    plugin: $pname  ($proot)"
+
+    # --- skills ---------------------------------------------------------
+    skills="$(declared "$repo" "$pname" "$proot" skills)"
+    if [ -z "$skills" ] && [ -d "$proot/skills" ]; then
+      skills="$(cd "$proot" && find skills -maxdepth 3 -name SKILL.md \
+                 -exec dirname {} \; | sort)"
+      [ -n "$skills" ] && note "GLOB  $pname declares no skills[]; globbed $(printf '%s\n' "$skills" | grep -c .) skill dir(s) — review them"
+    fi
+    n=0
+    while read -r rel; do
+      [ -n "$rel" ] || continue
+      rel="${rel#./}"
+      excluded "$repo" "$rel" && { note "SKIP  $pname/$rel excluded by $(basename "$repo").skillsync"; continue; }
+      src="$proot/$rel"
+      [ -f "$src/SKILL.md" ] || { note "WARN  $pname: no SKILL.md at $rel"; continue; }
+      printf 'skill\t%s\t%s\t%s\n' "$SKILLS_DIR/$(basename "$rel")" "$src" "$proot" >>"$DESIRED"
+      n=$((n+1))
+    done <<EOF
+$skills
+EOF
+    echo "      skills:   $n"
+
+    # --- commands -------------------------------------------------------
+    cmds="$(declared "$repo" "$pname" "$proot" commands)"
+    if [ -z "$cmds" ] && [ -d "$proot/commands" ]; then
+      cmds="$(cd "$proot" && find commands -maxdepth 1 -name '*.md' | sort)"
+    fi
+    n=0
+    while read -r rel; do
+      [ -n "$rel" ] || continue
+      rel="${rel#./}"
+      src="$proot/$rel"
+      [ -f "$src" ] || { note "WARN  $pname: missing command $rel"; continue; }
+      excluded "$repo" "$rel" && continue
+      printf 'command\t%s\t%s\t%s\n' "$CMD_DIR/$pname/$(basename "$rel")" "$src" "$proot" >>"$DESIRED"
+      n=$((n+1))
+    done <<EOF
+$cmds
+EOF
+    [ "$n" -gt 0 ] && echo "      commands: $n  (/$pname:*)"
+
+    # --- agents ---------------------------------------------------------
+    agents="$(declared "$repo" "$pname" "$proot" agents)"
+    if [ -z "$agents" ] && [ -d "$proot/agents" ]; then
+      agents="$(cd "$proot" && find agents -maxdepth 1 -name '*.md' | sort)"
+    fi
+    n=0
+    while read -r rel; do
+      [ -n "$rel" ] || continue
+      rel="${rel#./}"
+      src="$proot/$rel"
+      [ -f "$src" ] || { note "WARN  $pname: missing agent $rel"; continue; }
+      excluded "$repo" "$rel" && continue
+      aname="$(sed -n '1,10p' "$src" | sed -n 's/^name: *//p' | head -1 | tr -d '"')"
+      aname="${aname:-$(basename "$rel" .md)}"
+      case " $RESERVED_AGENTS " in
+        *" $aname "*) note "WARN  agent '$aname' ($pname) shadows a built-in agent — installing anyway; rename or exclude it if that bites" ;;
+      esac
+      printf '%s\t%s\n' "$aname" "$pname/$rel" >>"$WORK/agentnames"
+      printf 'agent\t%s\t%s\t%s\n' "$AGENT_DIR/$(basename "$rel")" "$src" "$proot" >>"$DESIRED"
+      n=$((n+1))
+    done <<EOF
+$agents
+EOF
+    [ "$n" -gt 0 ] && echo "      agents:   $n"
+
+    [ -f "$proot/hooks/hooks.json" ] && \
+      note "HOOKS $pname ships hooks/hooks.json — NOT installed (no user-level equivalent). To enable, merge into ~/.claude/settings.json with \${CLAUDE_PLUGIN_ROOT} replaced by $proot:
+$(sed "s|\${CLAUDE_PLUGIN_ROOT}|$proot|g; s/^/        /" "$proot/hooks/hooks.json")"
+  done < <(plugin_entries "$repo")
+done
+
+# Duplicate agent frontmatter names across repos are a real conflict: the file
+# name is namespaced by nothing, and Claude Code keys agents by frontmatter name.
+if [ -f "$WORK/agentnames" ]; then
+  while read -r dup; do
+    [ -n "$dup" ] || continue
+    note "WARN  agent name '$dup' declared by more than one plugin: $(awk -F'\t' -v d="$dup" '$1==d{printf "%s ", $2}' "$WORK/agentnames")"
+  done < <(cut -f1 "$WORK/agentnames" | sort | uniq -d)
+fi
+
+# ------------------------------------------------------------------ install ---
+
+echo
+[ "$DRY_RUN" = 1 ] && echo "==> DRY RUN — nothing will be written" || echo "==> installing"
+
+while read -r dup; do
+  [ -n "$dup" ] || continue
+  note "WARN  two plugins both install $dup — last one wins: $(awk -F'\t' -v t="$dup" '$2==t{printf "%s ", $3}' "$DESIRED")"
+done < <(cut -f2 "$DESIRED" | sort | uniq -d)
+
+installed=0; updated=0; skipped=0; adopted=0
+while IFS=$'\t' read -r kind target source proot; do
+  name="$(basename "$target")"
+  if [ -e "$target" ] || [ -L "$target" ]; then exists=1; else exists=0; fi
+
+  if [ "$exists" = 1 ] && ! owns "$target"; then
+    if adopting "$name"; then
+      backup="$BACKUP_ROOT/$name-$STAMP"
+      echo "    ADOPT  $name  (existing copy -> $backup)"
+      if [ "$DRY_RUN" = 0 ]; then
+        mkdir -p "$BACKUP_ROOT"
+        mv "$target" "$backup"
+      fi
+      adopted=$((adopted+1))
+    else
+      echo "    SKIP   $name  (pre-existing, not managed by skillsync)"
+      note "SKIP  $target already exists and skillsync did not create it. Diff it against $source; run: skillsync --adopt $name  (backs yours up to $BACKUP_ROOT first)"
+      skipped=$((skipped+1))
+      continue
+    fi
+  fi
+
+  if [ "$DRY_RUN" = 0 ]; then
+    case "$kind" in
+      skill)
+        mkdir -p "$(dirname "$target")"
+        rm -rf "$target"
+        ln -s "$source" "$target"
+        ;;
+      command|agent)
+        mkdir -p "$(dirname "$target")"
+        rewrite_into "$source" "$proot" "$target"
+        ;;
+    esac
+  fi
+  printf '%s\t%s\t%s\n' "$kind" "$target" "$source" >>"$NEXT"
+  if [ "$exists" = 1 ]; then updated=$((updated+1)); else
+    echo "    ADD    $kind  $name"; installed=$((installed+1)); fi
+done <"$DESIRED"
+
+# -------------------------------------------------------------------- prune ---
+
+while IFS=$'\t' read -r kind target source; do
+  [ -n "$target" ] || continue
+  cut -f2 "$NEXT" 2>/dev/null | grep -qxF "$target" && continue
+  # Only remove what we know we made: symlinked skills, regular command/agent files.
+  case "$kind" in
+    skill)         [ -L "$target" ] || { note "WARN  not pruning $target — no longer declared, but it is not a symlink (edited in place?)"; continue; } ;;
+    command|agent) [ -f "$target" ] && [ ! -L "$target" ] || continue ;;
+  esac
+  echo "    PRUNE  $kind  $(basename "$target")  (no longer declared upstream)"
+  [ "$DRY_RUN" = 0 ] && rm -f "$target"
+done <"$OWNED"
+
+if [ "$DRY_RUN" = 0 ]; then
+  find "$CMD_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+  jq -Rn --arg stamp "$STAMP" '
+    { version: 1, updated: $stamp,
+      entries: [ inputs | split("\t") | {kind: .[0], target: .[1], source: .[2]} ] }
+  ' <"$NEXT" >"$MANIFEST"
+fi
+
+echo
+echo "==> added $installed, refreshed $updated, adopted $adopted, skipped $skipped"
+if [ -s "$NOTES" ]; then echo; echo "==> notes"; sed 's/^/  /' "$NOTES"; fi
+[ "$DRY_RUN" = 1 ] && echo && echo "Dry run only. Re-run without --dry-run to apply."
+exit 0

@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "_comment": [
+    "Source repos for skillsync. Third-party marketplaces are blocked by enterprise",
+    "policy (see strictKnownMarketplaces in ~/.claude/remote-settings.json), so these",
+    "are cloned locally and installed as plain user-level skills/commands/agents.",
+    "",
+    "dir  - directory name under root; load-bearing, <dir>.skillsync filters key off it",
+    "url  - https, not git@: a fresh Coder workspace has no GitHub SSH key",
+    "ref  - branch or tag to track",
+    "pin  - exact SHA for reproducibility, or null to follow the tip of ref",
+    "",
+    "To update: cd <clone> && git pull, then update pin here and commit."
+  ],
+  "root": "~/Development/agent-skills",
+  "repos": [
+    {
+      "dir": "mattpocock-skills",
+      "url": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "pin": null
+    },
+    {
+      "dir": "palkan-skills",
+      "url": "https://github.com/palkan/skills.git",
+      "ref": "v2.0.1",
+      "pin": "f4e8cd90ae388339d53bc05a3826034d0df56255"
+    },
+    {
+      "dir": "claude-essentials",
+      "url": "https://github.com/rileyhilliard/claude-essentials.git",
+      "ref": "main",
+      "pin": null,
+      "enabled": false
+    }
+  ]
+}

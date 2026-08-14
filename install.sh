@@ -143,6 +143,78 @@ else
   echo "zsh-vi-mode is already installed."
 fi
 
+# Install rtk if missing. Homebrew-core only, so macOS in practice; the
+# PreToolUse hook wrapper (~/.claude/hooks/rtk-hook.sh) no-ops where rtk is
+# absent, so a Linux box without it works normally.
+if [[ -z `command -v rtk` ]]; then
+  if [[ -n `command -v brew` ]]; then
+    echo "rtk is not installed. Installing via brew..."
+    brew install rtk
+  else
+    echo "rtk is not installed and brew is unavailable. Skipping (hook will no-op)."
+  fi
+else
+  echo "rtk is already installed."
+fi
+
+# Clone the third-party agent-skill repos and install them as user-level skills.
+# Their marketplaces are blocked by enterprise policy, so skillsync installs the
+# contents directly. Source repos, refs and pins come from the tracked manifest.
+SKILLSYNC_SOURCES="$HOME/.config/agent-skills/sources.json"
+
+if [ -f "$SKILLSYNC_SOURCES" ]; then
+  if [[ -z `command -v jq` ]]; then
+    echo "ERROR: jq not found. Skipping agent skill sync."
+  elif [[ -z `command -v perl` ]]; then
+    echo "ERROR: perl not found. Skipping agent skill sync."
+  else
+    SKILLSYNC_ROOT="$(jq -r '.root // "~/Development/agent-skills"' "$SKILLSYNC_SOURCES")"
+    SKILLSYNC_ROOT="${SKILLSYNC_ROOT/#\~/$HOME}"
+    export SKILLSYNC_ROOT
+    export SKILLSYNC_SKILLS_DIR="$HOME/.claude/skills"
+    mkdir -p "$SKILLSYNC_ROOT" "$SKILLSYNC_SKILLS_DIR"
+
+    # Per-repo filters (exclusions, `disabled`) live alongside the clones.
+    cp -a "$HOME"/.config/agent-skills/filters/*.skillsync "$SKILLSYNC_ROOT/" 2>/dev/null || true
+
+    while IFS=$'\t' read -r dir url ref pin; do
+      [ -n "$dir" ] || continue
+      target="$SKILLSYNC_ROOT/$dir"
+      if [ ! -d "$target/.git" ]; then
+        echo "Cloning $dir from $url"
+        git clone --quiet "$url" "$target" || { echo "ERROR: clone failed: $url"; continue; }
+      else
+        echo "$dir is already cloned. Fetching..."
+        git -C "$target" fetch --quiet --tags origin || true
+      fi
+      if [ "$pin" != "null" ]; then
+        git -C "$target" checkout --quiet --detach "$pin" \
+          || echo "WARN: $dir: pin $pin not found; left at $(git -C "$target" rev-parse --short HEAD)"
+      else
+        git -C "$target" checkout --quiet "$ref" 2>/dev/null \
+          && git -C "$target" merge --quiet --ff-only "origin/$ref" 2>/dev/null || true
+      fi
+    done < <(jq -r '.repos[] | select(.enabled != false)
+                    | [.dir, .url, (.ref // "main"), (.pin // "null")] | @tsv' "$SKILLSYNC_SOURCES")
+
+    if [[ -n `command -v skillsync` ]]; then
+      skillsync
+    else
+      echo "WARN: skillsync not on PATH; expected $HOME/.local/bin/skillsync"
+    fi
+  fi
+fi
+
+# Marketplace plugins are deliberately NOT tracked: they name an internal repo and
+# this dotfiles repo is public. They live in ~/.claude/settings.local.json, which is
+# gitignored, so a fresh machine needs them added by hand.
+if [ ! -f "$HOME/.claude/settings.local.json" ]; then
+  echo
+  echo "NOTE: no ~/.claude/settings.local.json on this machine."
+  echo "      Marketplace plugins are configured there and are not tracked in this repo."
+  echo "      Add them with:  claude  ->  /plugin marketplace add <org>/<repo>"
+fi
+
 # Install Claude Code if missing (native installer, lands in ~/.local/bin)
 if [[ -z `command -v claude` ]]; then
   echo "Claude Code is not installed. Running installation..."

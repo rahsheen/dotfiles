@@ -1,0 +1,3 @@
+# Disable this repo entirely — the /ce:* commands and its skills went unused.
+# Delete this file (or the `disabled` line) and re-run skillsync to bring them back.
+disabled
