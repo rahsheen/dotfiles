@@ -4,4 +4,8 @@ test.sh
 nvim
 
 spell/
-lazy-lock.json
+
+# lazy-lock.json is deliberately TRACKED (kickstart.nvim ignores it upstream).
+# Without it, lazy.nvim generates a fresh lock per machine at first install, so
+# each box pins whatever was latest that day — which is how a Coder workspace
+# ended up on a refactoring.nvim that needed a dependency the Mac never saw.
