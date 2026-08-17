@@ -5,6 +5,12 @@ nvim
 
 spell/
 
+# Local dev checkout of a plugin we author. lazy loads it from its own clone in
+# ~/.local/share/nvim/lazy (declared in lua/custom/plugins/dev.lua and pinned in
+# lazy-lock.json), so this copy must NOT be tracked — adding a nested repo here
+# would create a gitlink with no .gitmodules, which is unresolvable on checkout.
+lua/custom/plugins/rubocop_todo.nvim/
+
 # lazy-lock.json is deliberately TRACKED (kickstart.nvim ignores it upstream).
 # Without it, lazy.nvim generates a fresh lock per machine at first install, so
 # each box pins whatever was latest that day — which is how a Coder workspace
