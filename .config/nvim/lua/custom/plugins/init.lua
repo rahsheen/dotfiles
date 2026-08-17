@@ -23,6 +23,9 @@ return {
   {
     'ThePrimeagen/refactoring.nvim',
     dependencies = {
+      -- Required since upstream moved to lua/refactoring.lua, which does
+      -- `require "async"`. Without it: "module 'async' not found" at startup.
+      'lewis6991/async.nvim',
       'nvim-lua/plenary.nvim',
       'nvim-treesitter/nvim-treesitter',
     },
