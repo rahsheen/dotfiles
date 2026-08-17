@@ -205,6 +205,43 @@ if [ -f "$SKILLSYNC_SOURCES" ]; then
   fi
 fi
 
+# Install Herdr (terminal workspace manager for coding agents). The curl
+# installer picks the right release binary, so macOS and Linux are identical.
+if [[ -z `command -v herdr` ]]; then
+  if [[ -n `command -v curl` ]]; then
+    echo "Herdr is not installed. Installing..."
+    curl -fsSL https://herdr.dev/install.sh | sh
+  else
+    echo "ERROR: 'curl' not found. Cannot install Herdr."
+  fi
+else
+  echo "Herdr is already installed."
+fi
+
+# Install the Herdr agent skill (teaches agents to drive herdr when HERDR_ENV=1).
+# Prefer the copy bundled with the installed binary so skill and binary always
+# match; fall back to a pinned upstream copy on builds older than 0.8.0.
+HERDR_SKILL_REF="v0.8.0"
+HERDR_SKILL_URL="https://raw.githubusercontent.com/herdrdev/herdr/${HERDR_SKILL_REF}/skills/herdr/SKILL.md"
+HERDR_SKILL_DIR="$HOME/.claude/skills/herdr"
+
+if [[ -n `command -v herdr` ]]; then
+  mkdir -p "$HERDR_SKILL_DIR"
+  if herdr --skill > "$HERDR_SKILL_DIR/SKILL.md.tmp" 2>/dev/null \
+     && [ -s "$HERDR_SKILL_DIR/SKILL.md.tmp" ]; then
+    mv "$HERDR_SKILL_DIR/SKILL.md.tmp" "$HERDR_SKILL_DIR/SKILL.md"
+    echo "Installed Herdr agent skill (bundled with the installed binary)."
+  else
+    rm -f "$HERDR_SKILL_DIR/SKILL.md.tmp"
+    echo "'herdr --skill' unavailable (needs 0.8.0+); fetching ${HERDR_SKILL_REF} from upstream..."
+    if [[ -n `command -v curl` ]] && curl -fsSL "$HERDR_SKILL_URL" -o "$HERDR_SKILL_DIR/SKILL.md"; then
+      echo "Installed Herdr agent skill (upstream ${HERDR_SKILL_REF})."
+    else
+      echo "ERROR: could not install the Herdr agent skill."
+    fi
+  fi
+fi
+
 # Work-only Claude Code config (internal plugin marketplace).
 #
 # These dotfiles run on personal machines too, where the internal marketplace is
