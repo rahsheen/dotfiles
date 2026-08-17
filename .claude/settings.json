@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/rtk-hook.sh"
+            "command": "rtk hook claude"
           }
         ]
       }
