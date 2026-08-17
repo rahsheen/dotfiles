@@ -205,14 +205,45 @@ if [ -f "$SKILLSYNC_SOURCES" ]; then
   fi
 fi
 
-# Marketplace plugins are deliberately NOT tracked: they name an internal repo and
-# this dotfiles repo is public. They live in ~/.claude/settings.local.json, which is
-# gitignored, so a fresh machine needs them added by hand.
-if [ ! -f "$HOME/.claude/settings.local.json" ]; then
-  echo
-  echo "NOTE: no ~/.claude/settings.local.json on this machine."
-  echo "      Marketplace plugins are configured there and are not tracked in this repo."
-  echo "      Add them with:  claude  ->  /plugin marketplace add <org>/<repo>"
+# Work-only Claude Code config (internal plugin marketplace).
+#
+# These dotfiles run on personal machines too, where the internal marketplace is
+# unreachable — Claude Code would error on every startup trying to fetch it. So
+# the config is applied ONLY when this looks like a work environment, by merging
+# ~/.config/claude/work-settings.json into ~/.claude/settings.local.json
+# (untracked, and the file Claude Code reads).
+is_work_env() {
+  [ -n "${CODER_WORKSPACE_NAME:-}" ] && return 0            # inside a Coder workspace
+  [ -d /workspaces ] && return 0                            # Coder workspace, alt marker
+  case "$(hostname -s 2>/dev/null)" in RR-*) return 0 ;; esac  # corporate MacBook (MDM naming)
+  git config --global user.email 2>/dev/null | grep -qi 'roadrunnerwm\.com' && return 0
+  return 1
+}
+
+WORK_SETTINGS="$HOME/.config/claude/work-settings.json"
+LOCAL_SETTINGS="$HOME/.claude/settings.local.json"
+
+if is_work_env; then
+  if [ ! -f "$WORK_SETTINGS" ]; then
+    echo "WARN: work environment detected but $WORK_SETTINGS is missing."
+  elif [[ -z `command -v jq` ]]; then
+    echo "WARN: work environment detected but jq is unavailable; skipping plugin config."
+  else
+    echo "Work environment detected. Applying internal marketplace config..."
+    mkdir -p "$HOME/.claude"
+    [ -f "$LOCAL_SETTINGS" ] || echo '{}' > "$LOCAL_SETTINGS"
+    # Deep-merge, work settings winning, then drop the comment key.
+    if jq -s '.[0] * .[1] | del(._comment)' "$LOCAL_SETTINGS" "$WORK_SETTINGS" \
+         > "$LOCAL_SETTINGS.tmp" 2>/dev/null; then
+      mv "$LOCAL_SETTINGS.tmp" "$LOCAL_SETTINGS"
+      echo "  -> merged into $LOCAL_SETTINGS"
+    else
+      rm -f "$LOCAL_SETTINGS.tmp"
+      echo "ERROR: failed to merge work settings; leaving $LOCAL_SETTINGS untouched."
+    fi
+  fi
+else
+  echo "Personal machine: skipping internal marketplace config."
 fi
 
 # Install Claude Code if missing (native installer, lands in ~/.local/bin)

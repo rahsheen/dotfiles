@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "Work-only Claude Code settings, merged into ~/.claude/settings.local.json by",
+    "install.sh ONLY when a work environment is detected (Coder workspace or a",
+    "corporate MacBook). Personal machines never get these keys, so Claude Code",
+    "never tries to reach a marketplace it has no access to.",
+    "",
+    "This file is tracked: the repo NAME is not sensitive, and the marketplace it",
+    "points at is INTERNAL, so knowing the name grants no access."
+  ],
+  "extraKnownMarketplaces": {
+    "roadrunner-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "RoadRunnerEngineering/rr-skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "approved-example-skills@roadrunner-agent-skills": true,
+    "typescript-lsp@roadrunner-agent-skills": true,
+    "ruby-lsp@roadrunner-agent-skills": true,
+    "roadrunner-workflow-skills@roadrunner-agent-skills": true
+  }
+}
