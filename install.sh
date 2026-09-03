@@ -58,6 +58,18 @@ case ":$PATH:" in
   *) export PATH="$HOME/.local/bin:$PATH" ;;
 esac
 
+# asdf's shims as well. .zshrc already adds them, so an interactive shell finds
+# ruby/node/nvim while an agent shelling out finds nothing — and settings.json
+# allow-lists `bundle exec rspec` and `npx vitest`, which then just fail.
+__asdf_shims="${ASDF_DATA_DIR:-$HOME/.asdf}/shims"
+if [ -d "$__asdf_shims" ]; then
+  case ":$PATH:" in
+    *":$__asdf_shims:"*) ;;
+    *) export PATH="$__asdf_shims:$PATH" ;;
+  esac
+fi
+unset __asdf_shims
+
 [ -r "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"
 
 # NOT `. ~/.aws/.env.coder`: the values are unquoted, and at least one
@@ -161,8 +173,17 @@ else
   fi
 fi
 
+# tmuxinator. `gem` lives in asdf's shims, which are not on PATH in the
+# non-interactive shell that runs this script, so the old bare `gem install`
+# just printed "gem: command not found" and left .config/tmuxinator unusable.
 if [[ -z `command -v tmuxinator` ]]; then
-  gem install tmuxinator
+  GEM_BIN="$(command -v gem || true)"
+  [ -n "$GEM_BIN" ] || GEM_BIN="${ASDF_DATA_DIR:-$HOME/.asdf}/shims/gem"
+  if [ -x "$GEM_BIN" ]; then
+    "$GEM_BIN" install tmuxinator || echo "WARN: tmuxinator install failed."
+  else
+    echo "WARN: gem not found; skipping tmuxinator."
+  fi
 fi
 
 # Install the jira CLI if missing. settings.json allow-lists `jira issue *`, and
