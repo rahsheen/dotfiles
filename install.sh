@@ -24,8 +24,54 @@ cp .tmux* $HOME
 cp .zshrc $HOME
 cp .tool-versions $HOME
 
-if [ -d "/workspaces" ]; then
-  echo ". /workspaces/.env.secrets" >> /home/coder/.zshrc
+# Claude Code user config: CLAUDE.md, RTK.md, settings.json, the rtk PreToolUse
+# hook and the statusline script. Copied here, before skillsync and the herdr
+# skill install below, so those layer on top instead of being overwritten.
+mkdir -p $HOME/.claude
+cp -a .claude/. $HOME/.claude/
+
+# Env shim. Three jobs: put ~/.local/bin on PATH, pick up machine-local secrets
+# that can't live in this public repo (push-secrets writes ~/.zshenv.local), and
+# export the app secrets the Coder template drops in ~/.aws/.env.coder.
+#
+# It goes in .zshenv, not .zshrc, because zsh sources .zshenv for
+# non-interactive shells too — and Claude Code's Bash tool is not an
+# interactive shell, so anything only in .zshrc is invisible to it. That is why
+# PATH is repeated here despite the .zshrc export above: without it, every tool
+# in ~/.local/bin (jira, cme, rtk, claude, herdr) vanishes the moment an agent
+# shells out.
+#
+# Appended behind a marker, never overwritten: on macOS ~/.zshenv already holds
+# real secrets, and this script runs there too.
+ZSHENV_MARKER="# >>> dotfiles env shim >>>"
+
+if grep -qF "$ZSHENV_MARKER" "$HOME/.zshenv" 2>/dev/null; then
+  echo "Env shim already present in ~/.zshenv."
+else
+  echo "Adding env shim to ~/.zshenv..."
+  # Quoted heredoc: this is remote shell code, expand nothing at install time.
+  cat >> "$HOME/.zshenv" <<'ZSHENV_SHIM'
+
+# >>> dotfiles env shim >>>
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+
+[ -r "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"
+
+# NOT `. ~/.aws/.env.coder`: the values are unquoted, and at least one
+# (HELCIM_API_KEY) contains a literal '$', which sourcing would expand and
+# silently corrupt. Assigning via `export "$line"` never rescans the value.
+if [ -r "$HOME/.aws/.env.coder" ]; then
+  while IFS= read -r __env_line; do
+    case "$__env_line" in ''|'#'*) continue ;; esac
+    export "$__env_line"
+  done < "$HOME/.aws/.env.coder"
+  unset __env_line
+fi
+# <<< dotfiles env shim <<<
+ZSHENV_SHIM
 fi
 
 # Add local bin to path
@@ -119,6 +165,74 @@ if [[ -z `command -v tmuxinator` ]]; then
   gem install tmuxinator
 fi
 
+# Install the jira CLI if missing. settings.json allow-lists `jira issue *`, and
+# the pr-jira-status and ticket-readiness skills shell out to it, so an agent
+# without this binary silently loses both. macOS has a tap; Linux takes the
+# release tarball, which nests the binary under <name>/bin/jira.
+#
+# Auth is NOT set up here: JIRA_API_TOKEN and ~/.config/.jira/.config.yml carry
+# real credentials and this repo is public. `push-secrets` delivers them.
+if [[ -z `command -v jira` ]]; then
+  case "${unameOut}" in
+    Darwin*)
+      echo "jira CLI is not installed. Installing via brew..."
+      brew install ankitpokhrel/jira-cli/jira-cli;;
+    Linux*)
+      echo "jira CLI is not installed. Installing from GitHub releases..."
+      JIRA_CLI_VERSION="1.7.0"
+      case "$(uname -m)" in
+        x86_64|amd64) JIRA_CLI_ARCH="x86_64";;
+        aarch64|arm64) JIRA_CLI_ARCH="arm64";;
+        *) JIRA_CLI_ARCH="";;
+      esac
+      if [ -z "$JIRA_CLI_ARCH" ]; then
+        echo "ERROR: no jira-cli build for $(uname -m). Skipping."
+      else
+        JIRA_TMP="$(mktemp -d)"
+        if curl -fsSL -o "$JIRA_TMP/jira.tar.gz" \
+             "https://github.com/ankitpokhrel/jira-cli/releases/download/v${JIRA_CLI_VERSION}/jira_${JIRA_CLI_VERSION}_linux_${JIRA_CLI_ARCH}.tar.gz" \
+           && tar -xzf "$JIRA_TMP/jira.tar.gz" -C "$JIRA_TMP"; then
+          JIRA_BIN="$(find "$JIRA_TMP" -type f -name jira -perm -u+x | head -1)"
+          if [ -n "$JIRA_BIN" ]; then
+            install -m 0755 "$JIRA_BIN" "$HOME/.local/bin/jira"
+            echo "Installed jira CLI $(~/.local/bin/jira version 2>/dev/null | head -1)"
+          else
+            echo "ERROR: no jira binary inside the release tarball."
+          fi
+        else
+          echo "ERROR: failed to download or extract jira-cli."
+        fi
+        rm -rf "$JIRA_TMP"
+      fi;;
+  esac
+else
+  echo "jira CLI is already installed."
+fi
+
+# Install confluence-markdown-exporter if missing. It needs Python >= 3.10;
+# Ubuntu 22.04 ships 3.10 at /usr/bin/python3, which is called explicitly because
+# the asdf `python3` shim has no version pinned in .tool-versions and errors out.
+# No PEP-668 marker on 22.04, so a --user install lands cleanly in ~/.local/bin.
+#
+# Its Atlassian credentials come from CME_AUTH, which push-secrets sets.
+if [[ -z `command -v cme` ]]; then
+  case "${unameOut}" in
+    Darwin*)
+      echo "cme is not installed. Installing via pip..."
+      python3 -m pip install --user --quiet --no-warn-script-location \
+        confluence-markdown-exporter || echo "ERROR: cme install failed.";;
+    Linux*)
+      echo "cme is not installed. Installing via pip..."
+      if [[ -z `command -v pip3` ]] && ! /usr/bin/python3 -m pip --version > /dev/null 2>&1; then
+        sudo apt-get install -y -qq python3-pip
+      fi
+      /usr/bin/python3 -m pip install --user --quiet --no-warn-script-location \
+        confluence-markdown-exporter || echo "ERROR: cme install failed.";;
+  esac
+else
+  echo "cme is already installed."
+fi
+
 # Install asdf plugins
 if [[ -z `command -v neovim` ]]; then
   asdf plugin add neovim
@@ -143,16 +257,23 @@ else
   echo "zsh-vi-mode is already installed."
 fi
 
-# Install rtk if missing. Homebrew-core only, so macOS in practice; the
-# PreToolUse hook wrapper (~/.claude/hooks/rtk-hook.sh) no-ops where rtk is
-# absent, so a Linux box without it works normally.
+# Install rtk if missing. macOS takes the homebrew-core bottle; Linux takes the
+# vendor installer, which resolves the latest release, verifies the SHA-256 and
+# handles the target split (x86_64 ships musl, aarch64 ships gnu). It lands in
+# ~/.local/bin, already on PATH from above. The PreToolUse hook wrapper
+# (~/.claude/hooks/rtk-hook.sh) no-ops where rtk is absent, so a failed install
+# degrades to unfiltered output rather than breaking every Bash call.
 if [[ -z `command -v rtk` ]]; then
-  if [[ -n `command -v brew` ]]; then
-    echo "rtk is not installed. Installing via brew..."
-    brew install rtk
-  else
-    echo "rtk is not installed and brew is unavailable. Skipping (hook will no-op)."
-  fi
+  case "${unameOut}" in
+    Darwin*)
+      echo "rtk is not installed. Installing via brew..."
+      brew install rtk;;
+    Linux*)
+      echo "rtk is not installed. Installing from GitHub releases..."
+      curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/master/install.sh | sh;;
+    *)
+      echo "rtk is not installed and no install method is known for ${unameOut}. Skipping (hook will no-op).";;
+  esac
 else
   echo "rtk is already installed."
 fi

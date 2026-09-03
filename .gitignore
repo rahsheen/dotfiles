@@ -24,3 +24,30 @@ undodir
 # export of an internal competency matrix and this repo is public.
 
 **/__pycache__/
+
+# Credential denylist. The work tree is $HOME and this repo is PUBLIC, so every
+# secret on this machine already sits inside it — untracked, but one `git add -A`
+# from being published. status.showUntrackedFiles=no means they never show up in
+# `git status` either, so there is no second chance to notice. Deny explicitly.
+#
+# Anything here that a Coder workspace needs is delivered by `push-secrets`
+# (~/.zshenv.local, ~/.config/.jira/.config.yml) or by the acme template
+# (~/.aws/.env.coder, ~/.npmrc, ~/.bundle/config) — never by this repo.
+.zshenv
+.zshenv.local
+.zprofile
+.netrc
+.npmrc
+.ssh/
+.aws/
+.gnupg/
+.bundle/config
+.config/gh/hosts.yml
+.config/op/
+.config/.jira/
+.config/confluence-markdown-exporter/
+.local/share/confluence-markdown-exporter/
+
+# macOS application state, including the confluence-markdown-exporter auth store
+# and the decoy `coder dotfiles` clone of this very repo.
+Library/

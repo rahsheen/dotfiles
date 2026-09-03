@@ -135,4 +135,16 @@ cat "${SCRIPT_FILE}" | ssh -t "${CODER_HOST}" \
   exit 1
 }
 
+# --- Secrets ---------------------------------------------------------------
+
+# Atlassian credentials can't ride the public dotfiles repo, so they get pushed
+# per workspace. Home is per-workspace, so this runs once per create rather
+# than per branch switch. Non-fatal: all but jira and cme work without it.
+if command -v push-secrets > /dev/null; then
+  push-secrets "${WORKSPACE_NAME}" \
+    || echo "Warning: push-secrets failed; jira and cme will be unauthenticated." >&2
+else
+  echo "Warning: push-secrets not on PATH; skipping Atlassian credentials." >&2
+fi
+
 echo "--- ✅ Workspace Setup Complete ---"
