@@ -265,6 +265,57 @@ transition **id** whose destination status matches (unique) and POSTs it via the
 REST API. It reads server/login from the jira-cli config and the token from
 `$JIRA_API_TOKEN` (or the keychain). Always transition via this helper.
 
+### Tearing down QA environments
+
+QA envs are per-ticket and nothing reaps them, so they pile up. When the user
+asks what can be cleaned up, destroyed, deleted, or stopped — "which coders can
+I kill", "any stale QA boxes", "clean up my workspaces" — use the bundled
+script. **Do not hand-roll this from `coder list` + ticket statuses.**
+
+```bash
+bash ~/.claude/skills/pr-jira-status/scripts/cleanup_qa.sh              # scan only
+bash ~/.claude/skills/pr-jira-status/scripts/cleanup_qa.sh --delete <ws>...
+bash ~/.claude/skills/pr-jira-status/scripts/cleanup_qa.sh --stop   <ws>...  # rarely needed — see below
+```
+
+Default (no args) **scans and changes nothing** — always safe to run, so lead
+with it. It lists every `<TICKET>-qa-review` workspace whose ticket is resolved,
+with the ticket status and the workspace's Started/Stopped state.
+
+**It selects on `resolution IS NOT EMPTY`, not status names.** That is the
+canonical signal and the reason to prefer the script: it catches `Production
+Deployed`, `Staging Deployed`, `Won't Do` and anything else the board resolves
+to, without hardcoding a name list. Matching status strings by hand
+under-reports — `Staging Deployed` reads like work in flight but is resolved,
+and hand-rolling it will wrongly present those as judgment calls.
+
+**Only `--delete` matters** — never offer `--stop`, Coder autostop already powers
+these boxes down.
+
+`--delete` refuses workspaces whose ticket is unresolved, and validates the whole
+batch before deleting anything. Present the scan, then **get explicit
+confirmation naming the workspaces**. Deletion is irreversible.
+
+**Scope limit:** the scan only matches `<TICKET>-qa-review` names. Randomly
+named boxes (`emerald-prawn-22`) and any workspace not following the convention
+are invisible to it — surface those separately from `coder list` and let the
+user decide, since there is no ticket to judge them by.
+
+**Expect the permission classifier to block these, including the safe scan.**
+Under auto mode every Bash call is screened, and a denial is hard — there is no
+prompt to approve, unlike default mode. `coder delete` is denied as irreversible
+infrastructure destruction. The scan gets caught too, which is a false positive:
+the classifier judges the script by what the file *can* do, and `cleanup_qa.sh`
+contains a reachable `coder "$action" "$ws" -y`, so it cannot separate the
+no-arg read-only path from `--delete`. When blocked:
+
+- **Do not** reach for the Coder HTTP API or otherwise route around the denial —
+  that defeats its intent rather than satisfying it.
+- Hand the user the exact command to run themselves with the `!` prefix, which
+  puts the output back in the conversation.
+- Durable fix: a narrow `autoMode.allow` entry naming this script — not
+  `Bash(coder delete *)`. May still be denied; fall back to `!`.
+
 ## The `state` values the script emits
 
 | state | meaning |
