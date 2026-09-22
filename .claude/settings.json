@@ -1,4 +1,6 @@
 {
+  "subagentPromptCacheTtl": "1h",
+  "promptSuggestionEnabled": false,
   "attribution": {
     "commit": "",
     "pr": ""
