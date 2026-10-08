@@ -70,8 +70,6 @@ if [ -d "$__asdf_shims" ]; then
 fi
 unset __asdf_shims
 
-[ -r "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"
-
 # NOT `. ~/.aws/.env.coder`: the values are unquoted, and at least one
 # (HELCIM_API_KEY) contains a literal '$', which sourcing would expand and
 # silently corrupt. Assigning via `export "$line"` never rescans the value.
@@ -82,6 +80,11 @@ if [ -r "$HOME/.aws/.env.coder" ]; then
   done < "$HOME/.aws/.env.coder"
   unset __env_line
 fi
+
+# Sourced LAST so it outranks the template. push-secrets writes GITHUB_TOKEN
+# here, and .env.coder carries GitHub names of its own; whichever lands second
+# is the one `gh` and every other consumer actually see.
+[ -r "$HOME/.zshenv.local" ] && . "$HOME/.zshenv.local"
 # <<< dotfiles env shim <<<
 ZSHENV_SHIM
 fi
@@ -252,6 +255,52 @@ if [[ -z `command -v cme` ]]; then
   esac
 else
   echo "cme is already installed."
+fi
+
+# Install lazygit if missing. macOS takes the homebrew-core bottle; Linux has no
+# apt package before Ubuntu 23.10, so it takes the release tarball. The asset URL
+# is resolved from the API rather than pinned because upstream has changed the
+# asset's capitalisation between releases — hence the case-insensitive match.
+if [[ -z `command -v lazygit` ]]; then
+  case "${unameOut}" in
+    Darwin*)
+      echo "lazygit is not installed. Installing via brew..."
+      brew install lazygit;;
+    Linux*)
+      echo "lazygit is not installed. Installing from GitHub releases..."
+      case "$(uname -m)" in
+        x86_64|amd64) LAZYGIT_ARCH="x86_64";;
+        aarch64|arm64) LAZYGIT_ARCH="arm64";;
+        *) LAZYGIT_ARCH="";;
+      esac
+      if [ -z "$LAZYGIT_ARCH" ]; then
+        echo "ERROR: no lazygit build for $(uname -m). Skipping."
+      else
+        LAZYGIT_URL="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
+          | sed -n 's/.*"browser_download_url": *"\([^"]*\)".*/\1/p' \
+          | grep -i "linux_${LAZYGIT_ARCH}\.tar\.gz$" | head -1)"
+        if [ -z "$LAZYGIT_URL" ]; then
+          echo "ERROR: could not resolve a lazygit linux_${LAZYGIT_ARCH} release asset."
+        else
+          LAZYGIT_TMP="$(mktemp -d)"
+          if curl -fsSL -o "$LAZYGIT_TMP/lazygit.tar.gz" "$LAZYGIT_URL" \
+             && tar -xzf "$LAZYGIT_TMP/lazygit.tar.gz" -C "$LAZYGIT_TMP"; then
+            LAZYGIT_BIN="$(find "$LAZYGIT_TMP" -type f -name lazygit | head -1)"
+            if [ -n "$LAZYGIT_BIN" ]; then
+              install -m 0755 "$LAZYGIT_BIN" "$HOME/.local/bin/lazygit"
+              echo "Installed $(~/.local/bin/lazygit --version 2>/dev/null | head -1)"
+            else
+              echo "ERROR: no lazygit binary inside the release tarball."
+            fi
+          else
+            echo "ERROR: failed to download or extract lazygit."
+          fi
+          rm -rf "$LAZYGIT_TMP"
+        fi
+      fi;;
+  esac
+else
+  echo "lazygit is already installed."
 fi
 
 # Install asdf plugins
