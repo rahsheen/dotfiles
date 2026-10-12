@@ -1,6 +1,4 @@
 {
-  "subagentPromptCacheTtl": "1h",
-  "promptSuggestionEnabled": false,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -50,6 +48,13 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
+  "enabledPlugins": {
+    "typescript-lsp@roadrunner-agent-skills": true,
+    "ruby-lsp@roadrunner-agent-skills": true,
+    "roadrunner-workflow-skills@roadrunner-agent-skills": true,
+    "approved-example-skills@roadrunner-agent-skills": true
+  },
+  "subagentPromptCacheTtl": "1h",
   "promptSuggestionEnabled": false,
   "theme": "auto",
   "editorMode": "vim",
@@ -94,5 +99,13 @@
       "**Org-specific CLIs**: jira, coder, dev-coder, qa-coder, coder-picker, herdr, rtk, localdev-link, pr-suite, push-secrets, count_cb, cfg (observed repeatedly in this project's transcripts and shell history, RoadRunnerEngineering-specific tooling)",
       "routine under coyote/ and lyra/ worktree prefixes per the project's git-worktree folder structure documented in CLAUDE.md"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "roadrunner-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "RoadRunnerEngineering/rr-skills"
+      }
+    }
   }
 }

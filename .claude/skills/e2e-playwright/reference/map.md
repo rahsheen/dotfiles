@@ -2,6 +2,8 @@
 
 The map answers: *which e2e specs touch the code in this diff?* There is no manifest today, so derive it statically. Cache the result under the scratchpad keyed by `git rev-parse HEAD` of each repo; rebuild when either HEAD moves.
 
+`$COYOTE_ROOT` and `$LYRA_ROOT` are resolved in SKILL.md (**Locate the repos**) and differ between local worktrees and a Coder workspace. In Coder the two repos are independent clones that may sit on different branches, so cache per-repo HEAD as written — a single combined key will go stale silently.
+
 Five edge types. Build only the ones the change surface needs — if the diff is pure Ruby, the POM/selector edge is wasted work.
 
 The same map serves a prospective run from a Jira ticket; only the input differs. For ticket input, read **Vocabulary bridging** at the bottom first — it is the usual reason a covering spec looks missing when it exists.
@@ -16,7 +18,7 @@ const SEED_PATTERN = 'e2eHaulerCollapsePayHold';
 ```
 
 - Grep specs for `SEED_FILE`/`SEED_PATTERN` constants and for `seed(...)` / `seedCleanup(...)` / `.seed(...)` / `.cleanup(...)` call arguments. Coyote's legacy specs pass the path inline rather than via a constant.
-- Resolve each path against `coyote/<wt>/` and read it.
+- Resolve each path against `$COYOTE_ROOT/` and read it.
 - Extract referenced model constants (capitalized `Foo.create`, `Foo.find_by`, `Foo.new`) and any `require_relative` into `shared_test_setup.rb`.
 
 A diff touching `app/models/<model>.rb`, a migration for its table, or the seed file itself implicates every spec on this edge.
@@ -49,7 +51,7 @@ A diff touching a migration for one of those tables, or the seed that populates 
 
 Determines whether the spec runs at all, and which AIO cycle its result lands in.
 
-- Parse `test-files:` values across `coyote/<wt>/.github/workflows/playwright.yml`, `lyra/<wt>/.github/workflows/playwright.yml`, and the `customer-portal-playwright.yml` / `playwright-poc.yml` variants.
+- Parse `test-files:` values across `$COYOTE_ROOT/.github/workflows/playwright.yml`, `$LYRA_ROOT/.github/workflows/playwright.yml`, and the `customer-portal-playwright.yml` / `playwright-poc.yml` variants.
 - Each is a glob (sometimes a multi-line list under `>-`). Expand and match against the spec path.
 - Record the owning job name and its `aio-tag` (an AIO **cycle** key like `PT-CY-291`, not a case key).
 
@@ -59,7 +61,7 @@ A spec matching zero globs never runs — feed that to the unrun-spec detector.
 
 Cheap, high-precision, and the only reliable way to find file-upload flows — their test titles often do not contain the words a ticket uses.
 
-- List `coyote/<wt>/playwright_tests/upload_files/` and `lyra/<wt>/apps/coyote-e2e/playwright_tests/upload_files/`.
+- List `$COYOTE_ROOT/playwright_tests/upload_files/` and `$LYRA_ROOT/apps/coyote-e2e/playwright_tests/upload_files/`.
 - Grep specs for each filename.
 
 Worked example: PT-1661's testing notes say *"sales bill bulk upload … live bill bulk upload"*. No test title contains "bulk upload". But `bulkSalesBillUpload.csv` and `bulkLiveBillUpload.csv` are both referenced by `playwright_tests/billing/bulk_bill_upload.spec.ts:16-19`, which is the covering spec. Title grep alone would have missed it.

@@ -1,4 +1,5 @@
 return {
+  cond = false,
   url = 'https://gitlab.com/schrieveslaach/sonarlint.nvim',
   ft = {
     'javascript',

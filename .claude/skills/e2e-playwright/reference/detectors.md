@@ -118,6 +118,13 @@ Do **not** flag a missing `--project` flag on its own — omitting it is correct
 
 Related stale-glob instances worth reporting when nearby: `coder_run_scripts/{all_tests,billing}.sh` reference the deleted `details-tests/`, and `coyote playwright_tests/run_tests.sh:17` references a deleted `camera_services/`.
 
+csdev's two Coder Playwright resources (`coder/templates/acme/workspace/projects.json`,
+`coyote-playwright` and `lyra-coyote-playwright`) invoke `playwright test --ui-port=…` with **no
+path filter**, which is the bare-invocation hazard rather than the wrong-project one. Lyra's root
+`testDir` is `./apps/`, so collection walks `apps/customer-portal/src/` — expect a
+`@roadrunnerengineering/dsl` resolution error in the UI instead of a test tree. Unverified in a
+live workspace; confirm before reporting it as broken rather than suspect.
+
 ---
 
 ## Coverage depth (advisory, not a defect)

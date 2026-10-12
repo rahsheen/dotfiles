@@ -753,6 +753,12 @@ require('lazy').setup({
             local git = MiniStatusline.section_git { trunc_width = 0 }
             local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 0 }
 
+            -- rubocop_todo.nvim. Returns '' unless .rubocop_todo.yml excludes this file
+            -- from a cop, and combine_groups drops empty strings. pcall'd so a plugin
+            -- load failure can't break every statusline redraw.
+            local ok_rubocop, rubocop_todo = pcall(require, 'rubocop_todo')
+            local rubocop = ok_rubocop and rubocop_todo.statusline() or ''
+
             -- 2. Standard info for the right side
             local fileinfo = MiniStatusline.section_fileinfo { trunc_width = 120 }
             local location = '%2l:%-2v'
@@ -776,7 +782,7 @@ require('lazy').setup({
             -- 4. Combine everything
             return MiniStatusline.combine_groups {
               { hl = mode_hl, strings = { mode } },
-              { hl = 'MiniStatuslineDevinfo', strings = { git, diagnostics } },
+              { hl = 'MiniStatuslineDevinfo', strings = { git, diagnostics, rubocop } },
               -- This section will now yield space to the left side
               { hl = 'MiniStatuslineFilename', strings = { nx_display } },
               '%=',
