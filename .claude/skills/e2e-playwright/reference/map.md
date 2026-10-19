@@ -26,7 +26,7 @@ A diff touching `app/models/<model>.rb`, a migration for its table, or the seed 
 ## 2. spec → POM → selectors and routes
 
 - Follow the spec's relative imports into `POM/`.
-- Each POM may carry a `// POM for Page: <route>` header — that is the route index. Coverage is partial (24 of 44 Lyra POMs: 18/30 in `coyote-e2e`, 6/14 in `customer-portal-e2e`), so infer the rest from `page.goto(...)` calls in the POM and its callers.
+- Each POM may carry a `// POM for Page: <route>` header — that is the route index. Coverage is partial, so infer the rest from `page.goto(...)` calls in the POM and its callers.
 - Harvest locator strings from POM fields and spec bodies: `page.locator('...')`, `getByRole`, `getByTestId`, `getByText`, `getByLabel`, and raw `text=` selectors.
 - Classify each locator:
   - **test-id / role / label** — stable, low risk

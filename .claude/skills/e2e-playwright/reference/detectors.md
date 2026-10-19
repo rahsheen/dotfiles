@@ -1,6 +1,6 @@
 # False-positive detectors
 
-Each detector finds a way a diff can make an existing spec **pass while proving nothing**. Report only — never edit. Every example below is real code in the suite today.
+Each detector finds a way a diff can make an existing spec **pass while proving nothing**. Report only — never edit. Examples are real code from when this was written; locations may have moved.
 
 Confidence: **high** when the diff directly touches the named artifact; **medium** when the link is inferred through a POM or model.
 
@@ -53,7 +53,7 @@ Confidence is **high** when the spec has no `seed()` call at all and only querie
 await seedCleanup('e2eAdjCharg').catch((e) => console.error('seedCleanup failed:', e));
 ```
 
-15+ sites across `adjustments/`, `engagements/`, `mirror_invoice_and_bill_pairing/`, `hashtags_mentions/`. Lyra's `features/` specs use a bare `await seed.cleanup(...)` and are **not** affected — do not flag them.
+Common across `adjustments/`, `engagements/`, `mirror_invoice_and_bill_pairing/`, `hashtags_mentions/`. Lyra's `features/` specs use a bare `await seed.cleanup(...)` and are **not** affected — do not flag them.
 
 ---
 
@@ -68,7 +68,7 @@ await seedCleanup('e2eAdjCharg').catch((e) => console.error('seedCleanup failed:
 await page.waitForSelector(`text=${text}`, { timeout: 30000 });
 ```
 
-404 call sites (208 Coyote, 196 Lyra), so scope this detector to the routes the diff actually touches or it will drown the report.
+Hundreds of call sites, so scope this detector to the routes the diff actually touches or it will drown the report.
 
 ---
 
@@ -95,8 +95,6 @@ Change the overlay opacity to `bg-black/50` and the Escape never fires. Distingu
 
 **Why:** the spec never runs. Its AIO case keeps whatever result it last got — indefinitely. The dashboard reads green because the result is stale, not because anything passed. A PR adding a spec in a new directory lands in this state by default.
 
-Already true today of `smoke_navigation/bills.spec.ts` and `fleet-haul/cart_batch_change_order.spec.ts` in Lyra. Use those to sanity-check the detector.
-
 ---
 
 ## 7. Wrong-project invocation
@@ -105,25 +103,7 @@ Already true today of `smoke_navigation/bills.spec.ts` and `fleet-haul/cart_batc
 
 **Why:** the `chromium` project sets `testIgnore: '**/features/**'`, so those specs are dropped from collection with no warning and the run **exits 0**. Indistinguishable from a clean pass.
 
-Measured on `apps/coyote-e2e/playwright_tests`:
-
-| Invocation | Collected |
-|---|---|
-| `--project=chromium` | 111 tests / 40 files |
-| no `--project` | 118 tests / 44 files |
-
-The 7-test, 4-file gap is the entire `features/billing/` tree, silently skipped.
-
 Do **not** flag a missing `--project` flag on its own — omitting it is correct, and it is what CI does (`lyra/.github/actions/playwright/action.yml` passes no `--project`). Only `--project=chromium` over a features-inclusive target set is a finding. Naming a feature spec by explicit path under `chromium` is also not a finding: that exits 1 with `Error: No tests found`.
-
-Related stale-glob instances worth reporting when nearby: `coder_run_scripts/{all_tests,billing}.sh` reference the deleted `details-tests/`, and `coyote playwright_tests/run_tests.sh:17` references a deleted `camera_services/`.
-
-csdev's two Coder Playwright resources (`coder/templates/acme/workspace/projects.json`,
-`coyote-playwright` and `lyra-coyote-playwright`) invoke `playwright test --ui-port=…` with **no
-path filter**, which is the bare-invocation hazard rather than the wrong-project one. Lyra's root
-`testDir` is `./apps/`, so collection walks `apps/customer-portal/src/` — expect a
-`@roadrunnerengineering/dsl` resolution error in the UI instead of a test tree. Unverified in a
-live workspace; confirm before reporting it as broken rather than suspect.
 
 ---
 
