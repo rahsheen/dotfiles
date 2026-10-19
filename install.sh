@@ -433,6 +433,14 @@ if [[ -n `command -v herdr` ]]; then
   fi
 fi
 
+# Herdr's Claude integration: a SessionStart hook that reports session refs, so
+# Claude panes resume their conversations after a herdr server restart. Its
+# settings.json entry is deliberately untracked: herdr matches it by absolute
+# path, so a committed /Users/... entry would break on Coder and duplicate.
+if [[ -n `command -v herdr` ]]; then
+  herdr integration install claude || echo "ERROR: could not install the Herdr Claude integration."
+fi
+
 # Install Claude Code if missing (native installer, lands in ~/.local/bin)
 if [[ -z `command -v claude` ]]; then
   echo "Claude Code is not installed. Running installation..."
