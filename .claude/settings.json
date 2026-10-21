@@ -42,6 +42,18 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/Users/rahsheenporter/.claude/hooks/herdr-agent-state.sh' session",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -63,8 +75,8 @@
   "autoMode": {
     "allow": [
       "$defaults",
-      "Bash(bundle:*) in ~/roadrunner/coyote and ~/roadrunner/lyra worktrees — routine dependency/test tooling, high-frequency (92×) with no denials observed",
-      "Bash(npx:*) in ~/roadrunner/lyra worktrees — high-frequency (56× in-session, 93× in shell history) NX monorepo tooling",
+      "Bash(bundle:*) in RoadRunnerEngineering/coyote and RoadRunnerEngineering/lyra checkouts (any location or worktree) — routine dependency/test tooling, high-frequency (92×) with no denials observed",
+      "Bash(npx:*) in RoadRunnerEngineering/lyra checkouts (any location or worktree) — high-frequency (56× in-session, 93× in shell history) NX monorepo tooling",
       "Bash(jira:*) read/status subcommands — high-frequency (52×) org-specific ticketing CLI, routine use"
     ],
     "soft_deny": [
@@ -74,7 +86,7 @@
     ],
     "environment": [
       "### Org-wide",
-      "**Organization**: RoadRunnerEngineering (from `~/.claude/CLAUDE.md` reference to \"RoadRunnerEngineering repos\" and matching GitHub org across sibling repos under ~/roadrunner)",
+      "**Organization**: RoadRunnerEngineering (from `~/.claude/CLAUDE.md` reference to \"RoadRunnerEngineering repos\" and matching GitHub org across sibling repos)",
       "**Cloud provider(s)**: AWS (inferred from coyote-devops Terraform modules: acm, alb-attachment, ecr, rds-privatelink, refresh-mode-asg — unverified provenance, config-scan only)",
       "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public",
       "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",

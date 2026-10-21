@@ -233,6 +233,49 @@ else
   echo "jira CLI is already installed."
 fi
 
+# Install pup, the Datadog CLI, if missing. macOS has a tap; Linux takes the
+# pinned release tarball. The site comes from ~/.config/pup/config.yaml.
+#
+# Auth is OAuth, once per machine. A Coder box has no browser, so tunnel the
+# callback: `ssh -L 8888:127.0.0.1:8888 coder.<ws>`, then
+# `PUP_OAUTH_CALLBACK_PORT=8888 pup auth login` on the box.
+if [[ -z `command -v pup` ]]; then
+  case "${unameOut}" in
+    Darwin*)
+      echo "pup is not installed. Installing via brew..."
+      brew tap datadog-labs/pack && brew install datadog-labs/pack/pup;;
+    Linux*)
+      echo "pup is not installed. Installing from GitHub releases..."
+      PUP_VERSION="2.0.1"
+      case "$(uname -m)" in
+        x86_64|amd64) PUP_ARCH="x86_64";;
+        aarch64|arm64) PUP_ARCH="arm64";;
+        *) PUP_ARCH="";;
+      esac
+      if [ -z "$PUP_ARCH" ]; then
+        echo "ERROR: no pup build for $(uname -m). Skipping."
+      else
+        PUP_TMP="$(mktemp -d)"
+        if curl -fsSL -o "$PUP_TMP/pup.tar.gz" \
+             "https://github.com/DataDog/pup/releases/download/v${PUP_VERSION}/pup_${PUP_VERSION}_Linux_${PUP_ARCH}.tar.gz" \
+           && tar -xzf "$PUP_TMP/pup.tar.gz" -C "$PUP_TMP"; then
+          PUP_BIN="$(find "$PUP_TMP" -type f -name pup -perm -u+x | head -1)"
+          if [ -n "$PUP_BIN" ]; then
+            install -m 0755 "$PUP_BIN" "$HOME/.local/bin/pup"
+            echo "Installed pup $(~/.local/bin/pup --version 2>/dev/null | head -1)"
+          else
+            echo "ERROR: no pup binary inside the release tarball."
+          fi
+        else
+          echo "ERROR: failed to download or extract pup."
+        fi
+        rm -rf "$PUP_TMP"
+      fi;;
+  esac
+else
+  echo "pup is already installed."
+fi
+
 # Install confluence-markdown-exporter if missing. It needs Python >= 3.10;
 # Ubuntu 22.04 ships 3.10 at /usr/bin/python3, which is called explicitly because
 # the asdf `python3` shim has no version pinned in .tool-versions and errors out.
