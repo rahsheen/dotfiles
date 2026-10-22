@@ -62,5 +62,8 @@ if [ -n "$model" ]; then
     model_info=" ${model}"
 fi
 
-printf "╭─ %b %b%b%b%b\n" \
-    "$user_host" "$current_dir" "$git_branch" "$ctx_info" "$model_info"
+# Time until Coder autostop; empty outside a workspace
+coder_info=$(bash ~/.claude/hooks/coder-deadline.sh status 2>/dev/null)
+
+printf "╭─ %b %b%b%b%b%b\n" \
+    "$user_host" "$current_dir" "$git_branch" "$ctx_info" "$model_info" "$coder_info"
