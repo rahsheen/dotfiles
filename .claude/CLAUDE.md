@@ -73,7 +73,7 @@ truly ambiguous.
 - Dotfiles are a public bare repo: git dir `~/.cfg`, work tree `$HOME`. New files need an
   explicit `git add`. Do not commit secrets.
 - `~/Library/Application Support/coderv2/dotfiles` is a decoy clone. Do not edit it.
-- Put work-only provisioning in work scripts (`dev-coder`), not in `install.sh` conditionals.
+- Put work-only provisioning in `rr dev` (`~/roadrunner/rr-tui`), not in `install.sh` conditionals.
 
 # Environment
 
