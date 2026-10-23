@@ -796,19 +796,40 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
-    opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc', 'ruby' },
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Required for Catppuccin to take full control
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-    },
-    config = function(_, opts)
-      require('nvim-treesitter').setup(opts)
+    config = function()
+      local ts = require 'nvim-treesitter'
+      ts.install {
+        'bash', 'c', 'diff', 'dockerfile', 'embedded_template', 'git_config', 'git_rebase', 'gitcommit', 'gitignore',
+        'graphql', 'html', 'javascript', 'json', 'lua', 'markdown', 'markdown_inline', 'python', 'ruby', 'sql', 'terraform',
+        'toml', 'tsx', 'typescript', 'vim', 'vimdoc', 'yaml',
+      }
+
+      local function start(buf, lang)
+        if vim.api.nvim_buf_is_valid(buf) and pcall(vim.treesitter.start, buf, lang) then
+          vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end
+      end
+
+      -- main has no auto_install: install a missing parser on first use, then start it.
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('treesitter-start', { clear = true }),
+        callback = function(ev)
+          local lang = vim.treesitter.language.get_lang(ev.match)
+          if not lang then
+            return
+          end
+          if vim.treesitter.language.add(lang) then
+            start(ev.buf, lang)
+          elseif vim.tbl_contains(ts.get_available(), lang) then
+            ts.install(lang):await(vim.schedule_wrap(function()
+              start(ev.buf, lang)
+            end))
+          end
+        end,
+      })
     end,
   },
   {

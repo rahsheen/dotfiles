@@ -347,10 +347,12 @@ else
 fi
 
 # Install asdf plugins
-if [[ -z `command -v neovim` ]]; then
-  asdf plugin add neovim
-  asdf install neovim stable
-fi
+# Versions come from ~/.tool-versions; both commands are no-ops when already done.
+# nvim-treesitter's main branch needs the tree-sitter CLI to build parsers.
+for tool in neovim tree-sitter; do
+  asdf plugin add "$tool" 2>/dev/null
+  (cd "$HOME" && asdf install "$tool")
+done
 
 # Install FZF if missing
 if [[ -z `command -v fzf` ]]; then

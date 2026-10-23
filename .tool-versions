@@ -1,5 +1,6 @@
 ruby 3.3.2
 nodejs 22.8.0
 yarn 1.22.19
-neovim stable
+neovim 0.12.6
+tree-sitter 0.27.1
 awscli 2.31.4
