@@ -134,7 +134,7 @@ Then:
 | Verdict | When | Next step |
 |---|---|---|
 | **Ready** | No gaps, or only "we can decide" gaps that are truly trivial | Start. |
-| **Ready with assumptions** | Only "we can decide" gaps | Run `/grilling` to settle them with the engineer picking up the work, then post the resolved assumptions as a Jira comment **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
+| **Ready with assumptions** | Only "we can decide" gaps | Stop here. List the "we can decide" gaps as numbered open decisions, each with your recommended answer, and tell the user to run `/grill-with-docs` in this session to settle them. After grilling, offer to post the resolved assumptions as a Jira comment **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
 | **Not ready** | Any "only the reporter can decide" gap | Post the comment (below), move the ticket back, and do **not** start. Pull the next ticket instead. |
 
 Be willing to return **Not ready**. A gate that always says ready is not a gate.

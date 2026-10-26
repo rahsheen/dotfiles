@@ -29,44 +29,18 @@ truly ambiguous.
 
 - Comment only a non-obvious "why". Do not comment on removed code. When told to cut
   comments, delete them. Do not reword them.
-- Figma is the authority for colors, spacing, and type. Flag a visual value only when it is
-  provably broken (a missing token, a class with no effect).
-
-# Coyote
-
-- Put new code in the `app/` directory for its layer. Use the `layered-rails` skill to
-  find the layer.
-- Do not add files to `app/classes/` or `app/modules/`. These directories are legacy and
-  have no convention. Their files do not show where new code goes.
-- Remove ActiveRecord callbacks that do more than data integrity. Move the work into a
-  service, and delete the paths that write the record directly. Do not retime or defer a
-  callback. Name services `Creator`, `Updater`, `Deleter`, or `Canceler`. They return the
-  record and raise on failure. Standard: [Callback Hell](https://roadrunnerwm.atlassian.net/wiki/spaces/ROAD/pages/3655401474).
-- Do not run the full rspec suite locally. Run the specs for the change and its dependents.
-- `staging` is behind a merge queue. `gh pr merge` fails on a stacked PR. Ask the user to
-  merge it in the GitHub UI.
-- When Lyra fails against a local backend, first check that the coyote checkout on port 9000
-  is current with origin.
-- Coder startup runs migrations, which rewrites `db/structure.sql`. Ignore that diff when the
-  change adds no migration. Do not commit, review, or explain it. Before a commit, restore it
-  with `git checkout -- db/structure.sql`.
 
 # Tools
 
-- `rr` owns PR and ticket status, QA handoff, workspace provisioning, and reclaim. Use
-  `rr status --json`. Do not rebuild that data from `gh` and `jira`.
-- `jira issue move` matches the transition name, not the status. A PT Task goes to In Progress
-  with `"Transition to "` (trailing space). For other targets, use `rr`.
-- In JQL, use `statusCategory`, not `resolution`. Done tickets often have no resolution.
-- jira-cli corrupts the first markdown heading. Start a description with a throwaway
-  `### Context`. `--skip-notify` returns 403.
-- Read Confluence with `confluence-markdown-exporter pages <url>` (`cme`), not WebFetch. For a
-  personal-space URL (`~<accountid>`), replace the space segment with `x`.
 - A `+N more` marker means rtk summarized the output. Use `rtk proxy` for that one command
   only. Prefer the Grep and Read tools to shell `grep` and `cat`.
 - Third-party skills install with `skillsync` from clones in `~/Development/agent-skills/`
-  (runbook: its `README.md`). rr-skills uses `claude plugin`. Do not edit other engineers'
-  plugins in rr-skills.
+  (runbook: its `README.md`).
+
+# Work context
+
+Work rules (Coyote, Jira, `rr`, Confluence) live in `~/roadrunner/CLAUDE.md`, in the private repo
+`rahsheen/roadrunner-context`. `rr dev` checks it out at `~/workspace/` on Coder boxes.
 
 # Dotfiles
 
@@ -79,8 +53,6 @@ truly ambiguous.
 
 Terminal is Ghostty running inside tmux, with OSC 8 hyperlinks working. Use compact
 masked links — `[coyote#123](url)` — rather than bare literal URLs; they render clickable.
-
-On Coder boxes, repos are flat clones at `~/workspace/<repo>`, not worktrees.
 
 # Guardrails
 
