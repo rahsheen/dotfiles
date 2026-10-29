@@ -354,6 +354,15 @@ for tool in neovim tree-sitter; do
   (cd "$HOME" && asdf install "$tool")
 done
 
+# Install Neovim plugins, treesitter parsers and Mason tools now, so the first
+# `nvim` on a fresh box opens ready instead of downloading for minutes. The asdf
+# shims are not on PATH in this non-interactive shell; Mason's npm-based servers
+# also need node from them.
+(
+  export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+  cd "$HOME" && NVIM_BOOTSTRAP=1 nvim --headless "+Lazy! restore" "+MasonToolsInstallSync" +qa
+) || echo "WARN: headless Neovim bootstrap failed; plugins will install on first open."
+
 # Install FZF if missing
 if [[ -z `command -v fzf` ]]; then
   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf

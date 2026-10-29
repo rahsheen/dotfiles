@@ -801,11 +801,15 @@ require('lazy').setup({
     build = ':TSUpdate',
     config = function()
       local ts = require 'nvim-treesitter'
-      ts.install {
+      local parsers = ts.install {
         'bash', 'c', 'diff', 'dockerfile', 'embedded_template', 'git_config', 'git_rebase', 'gitcommit', 'gitignore',
         'graphql', 'html', 'javascript', 'json', 'lua', 'markdown', 'markdown_inline', 'python', 'ruby', 'sql', 'terraform',
         'toml', 'tsx', 'typescript', 'vim', 'vimdoc', 'yaml',
       }
+      -- install.sh bootstraps headlessly; without the wait, +qa kills the parser builds.
+      if vim.env.NVIM_BOOTSTRAP then
+        parsers:wait(600000)
+      end
 
       local function start(buf, lang)
         if vim.api.nvim_buf_is_valid(buf) and pcall(vim.treesitter.start, buf, lang) then
