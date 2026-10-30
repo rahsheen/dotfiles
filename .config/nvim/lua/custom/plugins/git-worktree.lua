@@ -3,33 +3,18 @@ return {
   version = '^2',
   dependencies = { 'nvim-lua/plenary.nvim' },
   config = function()
-    local Worktree = require 'git-worktree'
+    local hooks = require 'git-worktree.hooks'
 
-    -- op = Operations.Switch, Operations.Create, Operations.Delete
-    -- metadata = table of useful values (structure dependent on op)
-    --      Switch
-    --          path = path you switched to
-    --          prev_path = previous worktree path
-    --      Create
-    --          path = path where worktree created
-    --          branch = branch name
-    --          upstream = upstream remote name
-    --      Delete
-    --          path = path where worktree deleted
-
-    Worktree.on_tree_change(function(op, metadata)
-      if op == Worktree.Operations.Switch then
-        -- Delete all buffers except the current one
-        local bufs = vim.api.nvim_list_bufs()
-        local current_buf = vim.api.nvim_get_current_buf()
-        for _, i in ipairs(bufs) do
-          if i ~= current_buf then
-            vim.api.nvim_buf_delete(i, {})
-          end
+    hooks.register(hooks.type.SWITCH, function(path, prev_path)
+      -- Close the other listed buffers; modified ones stay open so no edits are lost.
+      local current_buf = vim.api.nvim_get_current_buf()
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if buf ~= current_buf and vim.bo[buf].buflisted and not vim.bo[buf].modified then
+          vim.api.nvim_buf_delete(buf, {})
         end
-
-        print('Switched from ' .. metadata.prev_path .. ' to ' .. metadata.path)
       end
+
+      print('Switched from ' .. (prev_path or '?') .. ' to ' .. path)
     end)
   end,
   keys = {

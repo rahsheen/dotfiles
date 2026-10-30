@@ -5,7 +5,6 @@ return {
   dependencies = {
     'nvim-neotest/nvim-nio',
     'nvim-lua/plenary.nvim',
-    'antoinemadec/FixCursorHold.nvim',
     'nvim-treesitter/nvim-treesitter',
     'olimorris/neotest-rspec',
     'marilari88/neotest-vitest',
@@ -24,13 +23,6 @@ return {
         require('neotest').run.run(vim.fn.expand '%')
       end,
       desc = 'Run File',
-    },
-    {
-      '<leader>td',
-      function()
-        require('neotest').run.run { strategy = 'dap' }
-      end,
-      desc = 'Debug Nearest',
     },
     {
       '<leader>ts',

@@ -14,10 +14,6 @@ vim.keymap.set('x', '<leader>p', [["_dP]])
 
 vim.keymap.set('i', '<C-c>', '<Esc>')
 
--- vim.keymap.set("n", "/", "/\v")
--- vim.keymap.set("v", "/", "/\v")
-vim.keymap.set('n', '<leader>`', ':noh<cr>')
-
 -- No Cheating (disable arrows)
 vim.keymap.set('n', '<up>', '<nop>')
 vim.keymap.set('n', '<down>', '<nop>')
@@ -27,16 +23,6 @@ vim.keymap.set('i', '<up>', '<nop>')
 vim.keymap.set('i', '<down>', '<nop>')
 vim.keymap.set('i', '<left>', '<nop>')
 vim.keymap.set('i', '<right>', '<nop>')
-
--- No weird line jumps
-vim.keymap.set('n', 'j', 'gj')
-vim.keymap.set('n', 'k', 'gk')
-
--- Copy to system clipboard
-vim.keymap.set('n', '<leader>y', '"*y')
-vim.keymap.set('v', '<leader>y', '"*y')
-vim.keymap.set('n', '<leader>yy', '"+y')
-vim.keymap.set('v', '<leader>yy', '"+y')
 
 vim.keymap.set('n', '<C-f>', '<cmd>silent !tmux neww tmux-sessionizer<CR>')
 
