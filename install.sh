@@ -402,6 +402,18 @@ else
   echo "rtk is already installed."
 fi
 
+# rtk on macOS reads its config from ~/Library/Application Support/rtk and
+# ignores XDG_CONFIG_HOME (rtk-ai/rtk#3193), so link it to the tracked copy that
+# Linux reads from ~/.config/rtk. A real file there is moved aside, not replaced.
+if [[ "${unameOut}" == Darwin* ]]; then
+  RTK_MAC_CONFIG="$HOME/Library/Application Support/rtk/config.toml"
+  mkdir -p "$(dirname "$RTK_MAC_CONFIG")"
+  if [[ -f "$RTK_MAC_CONFIG" && ! -L "$RTK_MAC_CONFIG" ]]; then
+    mv "$RTK_MAC_CONFIG" "$RTK_MAC_CONFIG.bak-$(date +%Y%m%d)"
+  fi
+  ln -sf "$HOME/.config/rtk/config.toml" "$RTK_MAC_CONFIG"
+fi
+
 # Clone the third-party agent-skill repos and install them as user-level skills.
 # Their marketplaces are blocked by enterprise policy, so skillsync installs the
 # contents directly. Source repos, refs and pins come from the tracked manifest.

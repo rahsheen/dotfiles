@@ -1,0 +1,64 @@
+[tracking]
+enabled = true
+history_days = 90
+
+[display]
+colors = true
+emoji = true
+max_width = 120
+
+[filters]
+ignore_dirs = [
+    ".git",
+    "node_modules",
+    "target",
+    "__pycache__",
+    ".venv",
+    "vendor",
+]
+ignore_files = [
+    "*.lock",
+    "*.min.js",
+    "*.min.css",
+]
+
+[tee]
+enabled = true
+mode = "failures"
+max_files = 20
+max_file_size = 1048576
+
+[telemetry]
+enabled = false
+consent_given = false
+consent_date = "2026-05-11T16:11:15.041986+00:00"
+
+[hooks]
+# Excluded 2026-08-17 after auditing 20 sessions of transcripts + history.db.
+# Rationale per command (savings figures from `rtk gain` / history.db):
+#   grep - 2459 parse failures (1793 on plain `-r`, plus -E -A -i -c -q -o -B).
+#          ~2/3 of all grep attempts can't be parsed, fall back at 0% savings,
+#          and inject a `Usage: rtk grep` error block into context. The 1181
+#          that did parse averaged only 8.7%. Net loss. Use the Grep tool.
+#   ls   - `rtk ls -1` emits `.` and `..`, which plain `ls -1` never does, so
+#          any `| wc -l` is silently +2. Real 61.2% saver, but a wrong count is
+#          worse than a large one. Revisit if upstream fixes it.
+#   jira - added 2026-11-04. `jira issue view` output was truncated, so one
+#          ticket took three calls. Ticket text is short and must arrive whole.
+# Note: exclude_commands matches the ORIGINAL command name, not the rtk
+# subcommand -- "read" here would be a no-op; cat/head/tail are the real names.
+# Deliberately NOT excluded - these carry the savings and tested clean:
+#   read via cat/head/tail - 7.8% but verified lossless (400/400 lines intact);
+#          savings come from whitespace stripping, so nothing to fix
+#   git (25.4%, 791K) find (65.6%, 1.2M) rubocop (85.9%) lint (85.3%)
+#   jest (97.8%) vitest (96.5%) playwright (76.5%) rspec (29.9%) gh (28.2%)
+#   rg - verified correct today incl. `-g '*.rb'`; the July rg->grep rewrite
+#        problem is fixed in 0.45.0
+exclude_commands = ["grep", "ls", "jira"]
+
+[limits]
+grep_max_results = 200
+grep_max_per_file = 25
+status_max_files = 15
+status_max_untracked = 10
+passthrough_max_chars = 2000
