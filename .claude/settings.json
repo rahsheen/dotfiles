@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/Users/rahsheenporter/.claude/hooks/herdr-agent-state.sh' session",
+            "command": "[ -f ~/.claude/hooks/herdr-agent-state.sh ] && bash ~/.claude/hooks/herdr-agent-state.sh session || true",
             "timeout": 10
           }
         ]
@@ -87,6 +87,14 @@
     "ruby-lsp@roadrunner-agent-skills": true,
     "roadrunner-workflow-skills@roadrunner-agent-skills": true,
     "approved-example-skills@roadrunner-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "roadrunner-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "RoadRunnerEngineering/rr-skills"
+      }
+    }
   },
   "subagentPromptCacheTtl": "1h",
   "promptSuggestionEnabled": false,
@@ -134,12 +142,5 @@
       "routine under coyote/ and lyra/ worktree prefixes per the project's git-worktree folder structure documented in CLAUDE.md"
     ]
   },
-  "extraKnownMarketplaces": {
-    "roadrunner-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "RoadRunnerEngineering/rr-skills"
-      }
-    }
-  }
+  "autoMemoryEnabled": false
 }

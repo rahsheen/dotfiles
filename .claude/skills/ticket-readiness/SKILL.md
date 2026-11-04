@@ -10,7 +10,7 @@ description: >-
   ticket", "review the backlog before planning", or any ask about whether work
   is defined well enough to begin. Also runs in bulk over a sprint or filter.
   Produces a Ready / Ready-with-assumptions / Not-ready verdict, a gap list
-  split by who can answer each gap, and a Jira comment to post back.
+  split by who can answer each gap, and a draft Jira comment for the user to post.
 ---
 
 # Ticket readiness
@@ -40,6 +40,10 @@ This means step 2 below is the expensive step and you do not get to skip it.
 ```bash
 jira issue view <KEY> --plain --comments 20
 ```
+
+Check the status first. If the ticket is past In Progress (in review, QA,
+Ready for Acceptance, or Done), a readiness check does not apply. Report the
+status and the open blocker from the latest comments, then stop.
 
 Read the description, the acceptance criteria, the comments (decisions often
 live only there), linked issues, and any attached design. Note what the ticket
@@ -134,17 +138,17 @@ Then:
 | Verdict | When | Next step |
 |---|---|---|
 | **Ready** | No gaps, or only "we can decide" gaps that are truly trivial | Start. |
-| **Ready with assumptions** | Only "we can decide" gaps | Stop here. List the "we can decide" gaps as numbered open decisions, each with your recommended answer, and tell the user to run `/grill-with-docs` in this session to settle them. After grilling, offer to post the resolved assumptions as a Jira comment **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
-| **Not ready** | Any "only the reporter can decide" gap | Post the comment (below), move the ticket back, and do **not** start. Pull the next ticket instead. |
+| **Ready with assumptions** | Only "we can decide" gaps | Stop here. List the "we can decide" gaps as numbered open decisions, each with your recommended answer, and tell the user to run `/grill-with-docs` in this session to settle them. After grilling, draft the resolved assumptions as a Jira comment (below) for the user to post **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
+| **Not ready** | Any "only the reporter can decide" gap | Draft the comment (below) and stop. Do **not** start. Pull the next ticket instead. |
 
 Be willing to return **Not ready**. A gate that always says ready is not a gate.
 Equally, don't manufacture blockers to look thorough — one real question beats
 eight speculative ones, and a wall of generic questions is how teams learn to
 ignore this.
 
-### 6. Post it back
+### 6. Draft the comment
 
-Post to the ticket:
+Draft this for the ticket:
 
 ```markdown
 _Readiness check — automated, grounded in the current codebase._
@@ -162,9 +166,9 @@ _Readiness check — automated, grounded in the current codebase._
 - [ ] Given …, when …, then …
 ```
 
-Post with `jira issue comment add <KEY> --template -` from a heredoc so the
-markdown survives. Confirm the comment text with the user before posting —
-it's visible to the whole team.
+Print it in a fenced block for the user to post. Do not post it, and do not
+move the ticket — the comment is visible to the whole team, and the user
+decides when it goes out.
 
 ## Bulk mode
 
@@ -174,7 +178,7 @@ For "groom the sprint" / "check these ten tickets":
 2. Check each one independently (parallel `Explore` agents are fine; the
    codebase reads don't conflict).
 3. Render one table — key, title, verdict, gap count, the single biggest gap.
-4. Post comments only on the not-ready ones, and only after the user confirms.
+4. Draft comments only for the not-ready ones.
 
 Lead with the not-ready ones. That list is the actual output of grooming.
 

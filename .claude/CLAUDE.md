@@ -13,7 +13,8 @@ This includes chat, PR bodies, Jira comments, and commit messages.
 - Resolve decisions in prose. Do not use the multiple-choice question tool.
 - PR body: fill in `.github/PULL_REQUEST_TEMPLATE.md`. The description tells what changed and
   where, plus what a reviewer cannot get from the diff. Do not add rationale sections or tell
-  how you found the problem.
+  how you found the problem. Tick a checklist box only when the body shows its evidence: a
+  command and its result, or a `file:line`.
 - PR notes and Jira comments: one short paragraph per finding, with a label
   (`Before flag-on:`, `Minor:`).
 - Put a caveat in one place (PR or ticket). Refer to it from the other place.
@@ -32,7 +33,7 @@ truly ambiguous.
 
 # Tools
 
-- A `+N more` marker means rtk summarized the output. Use `rtk proxy` for that one command
+- A `+N more` marker means rtk summarized the output. Use `rtk bypass` for that one command
   only. Prefer the Grep and Read tools to shell `grep` and `cat`.
 - Third-party skills install with `skillsync` from clones in `~/Development/agent-skills/`
   (runbook: its `README.md`).
