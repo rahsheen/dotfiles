@@ -54,6 +54,12 @@ Work rules (Coyote, Jira, `rr`, Confluence) live in `~/roadrunner/CLAUDE.md`, in
 Terminal is Ghostty running inside tmux, with OSC 8 hyperlinks working. Use compact
 masked links — `[coyote#123](url)` — rather than bare literal URLs; they render clickable.
 
+The Bash tool runs zsh, not bash:
+- Write `${var}:x`, not `$var:x`. zsh reads `:x` as a modifier.
+- An unquoted `$var` does not split into words. Use `${=var}`, an array, or `xargs`. Do
+  not put a command in a variable.
+- Quote a word that starts with `=`, such as `echo "===="`.
+
 # Guardrails
 
 **Do not rename or delete the remote head branch of an open PR.** GitHub closes the PR.
