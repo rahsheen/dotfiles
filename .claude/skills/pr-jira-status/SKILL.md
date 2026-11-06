@@ -11,7 +11,9 @@ description: >-
   Trigger even when the user doesn't say the words "PR" or "Jira" but is clearly
   asking what they need to do next to move their work forward. Also handles
   "where do I stand on all open tickets", "everything on my plate", or any ask
-  spanning work that has no PR yet — those are covered by default.
+  spanning work that has no PR yet — those are covered by default. Also use it
+  to move a ticket to QA, hand off to QA, provision a dev workspace, or reclaim
+  workspaces.
 ---
 
 # PR / Jira mergeability status
@@ -89,7 +91,13 @@ rr run <ticket> '<cmd>'     # run a command in the ticket's workspace (no single
 Nothing under `rr followups` is ever run automatically: rake tasks mutate data
 and flags need a human call.
 
-## If `rr` is missing
+## On a Coder box
+
+`rr` runs only on the Mac. On Coder, do not install it and do not rebuild its
+output or mutations from `gh` and `jira`. Name the `rr` command and tell the
+user to run it on the Mac.
+
+## If `rr` is missing on the Mac
 
 ```bash
 cd ~/roadrunner/rr-tui && uv venv && uv pip install -e .
