@@ -1,16 +1,10 @@
 ---
 name: ticket-readiness
 description: >-
-  Check whether a Jira ticket is actually ready to implement before anyone
-  starts it — by reading the ticket AND the code it touches, then reporting the
-  specific gaps. Use at grooming, refinement, sprint planning, or the moment
-  before picking up a ticket. Triggers on "is EP-1234 ready", "groom these
-  tickets", "refine the sprint", "what's missing from this ticket", "are the
-  acceptance criteria good", "is this well specified", "should I start this
-  ticket", "review the backlog before planning", or any ask about whether work
-  is defined well enough to begin. Also runs in bulk over a sprint or filter.
-  Produces a Ready / Ready-with-assumptions / Not-ready verdict, a gap list
-  split by who can answer each gap, and a draft Jira comment for the user to post.
+  Readiness check for a Jira ticket before implementation: reads the ticket and
+  the code it touches, reports the gaps, and drafts a Jira comment. Use for one
+  ticket ("is PT-1234 ready", "should I start this") or in bulk over a sprint
+  or filter at grooming and refinement.
 ---
 
 # Ticket readiness
@@ -22,6 +16,15 @@ exactly what is missing and who has to answer it.
 discovery of missing edge cases from "three hours into the branch" to "grooming,
 where it costs a comment." Run it in bulk over sprint candidates a few days
 before planning so the gaps go back to the PM asynchronously.
+
+## Read-only: the user posts
+
+This skill reads Jira and writes nothing to it. Its output is content for the
+user to share: the verdict, the gap list, and draft comments in fenced blocks,
+ready to paste. The user decides what goes out and when, because a comment is
+visible to the whole team. This holds in every mode, bulk included: no
+comments, transitions, labels, field edits, or assignee changes. Write to Jira
+only when the user asks for that specific write in this session.
 
 ## Non-negotiable: ground every probe in the code
 
@@ -37,9 +40,15 @@ This means step 2 below is the expensive step and you do not get to skip it.
 
 ### 1. Read the ticket
 
+Read the ticket with the Jira tool you have, including its comments. With
+jira-cli:
+
 ```bash
 jira issue view <KEY> --plain --comments 20
 ```
+
+With the Atlassian MCP, fetch the issue and its comments. If neither is
+available, ask the user to paste the ticket.
 
 Check the status first. If the ticket is past In Progress (in review, QA,
 Ready for Acceptance, or Done), a readiness check does not apply. Report the
@@ -80,12 +89,13 @@ where the code shows a real branch the ticket is silent on.
 | **Idempotency & concurrency** | Is this reachable twice — double-click, retry, a job that can re-run, a webhook that can redeliver? Does the code have a uniqueness constraint or a lock, or does the ticket assume one exists? |
 | **External dependencies** | Every network/service call on the path. What does the ticket say happens when it times out or 500s? Usually: nothing. |
 | **Blast radius** | Existing callers of a modified method/endpoint/component. Does the ticket acknowledge them? |
-| **Test invalidation** | Existing specs on the path. Will this change break them, or worse, silently make them assert nothing? For e2e specifically, hand off to `/e2e-playwright` — it does grooming-time blast radius. |
+| **Test invalidation** | Existing specs on the path. Will this change break them, or worse, silently make them assert nothing? Include e2e specs (Playwright) that drive the affected page or endpoint. If an e2e impact skill such as `e2e-playwright` is installed, hand off to it for this probe: it finds specs that would keep passing without proving anything. |
+| **UI states** | Frontend tickets only. The component's loading, empty, and error states, and what a role without access sees (hidden or disabled). Does the ticket or design cover each state the component renders? |
 | **Rollout & reversibility** | Is this behind a flag? If it's wrong in production, what's the undo? Data migrations especially. |
 | **Contradiction** | Does the ticket assert something the code disproves? ("currently users can't X" — but they can.) This is the highest-value find and it is only findable by reading the code. |
 
 Not every probe applies to every ticket. A copy change needs three of these; a
-schema change needs all ten. Don't pad.
+schema change needs most of them. Don't pad.
 
 ### 4. The acceptance-criteria test
 
@@ -137,8 +147,8 @@ Then:
 
 | Verdict | When | Next step |
 |---|---|---|
-| **Ready** | No gaps, or only "we can decide" gaps that are truly trivial | Start. |
-| **Ready with assumptions** | Only "we can decide" gaps | Stop here. List the "we can decide" gaps as numbered open decisions, each with your recommended answer, and tell the user to run `/grill-with-docs` in this session to settle them. After grilling, draft the resolved assumptions as a Jira comment (below) for the user to post **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
+| **Ready** | No gaps that would change what gets built | Start. |
+| **Ready with assumptions** | Only "we can decide" gaps that change what gets built | Stop here. List the "we can decide" gaps as numbered open decisions, each with your recommended answer, and settle them with the user in this session (`/grill-with-docs` does this well if it is installed). After they are settled, draft the resolved assumptions as a Jira comment (below) for the user to post **before** starting. Written-down assumptions are cheap to correct; unwritten ones become arguments in code review. |
 | **Not ready** | Any "only the reporter can decide" gap | Draft the comment (below) and stop. Do **not** start. Pull the next ticket instead. |
 
 Be willing to return **Not ready**. A gate that always says ready is not a gate.
@@ -158,7 +168,7 @@ _Readiness check — automated, grounded in the current codebase._
 **Resolved / assumed (we'll proceed this way unless told otherwise):**
 - <assumption> — <the code reason it's the sensible default>
 
-**Needs an answer from @<reporter>:**
+**Needs an answer from <reporter's name>:**
 1. <specific question, citing the code that raises it>
 2. <specific question, citing the code that raises it>
 
@@ -166,15 +176,15 @@ _Readiness check — automated, grounded in the current codebase._
 - [ ] Given …, when …, then …
 ```
 
-Print it in a fenced block for the user to post. Do not post it, and do not
-move the ticket — the comment is visible to the whole team, and the user
-decides when it goes out.
+Print it in a fenced block for the user to post. A plain-text `@name` does not notify anyone in Jira,
+so tell the user to @-mention the reporter in the Jira editor when they post.
 
 ## Bulk mode
 
 For "groom the sprint" / "check these ten tickets":
 
-1. Resolve the list — `jira issue list -q '<jql>' --plain` or the keys given.
+1. Resolve the list from the keys given, or run the JQL with your Jira tool
+   (jira-cli: `jira issue list -q '<jql>' --plain`).
 2. Check each one independently (parallel `Explore` agents are fine; the
    codebase reads don't conflict).
 3. Render one table — key, title, verdict, gap count, the single biggest gap.
@@ -185,6 +195,8 @@ Lead with the not-ready ones. That list is the actual output of grooming.
 ## Feedback loop
 
 When implementation uncovers a gap this check missed, that's the signal worth
-acting on: add a probe row for it here. The probe table should grow from real
-misses, not from imagination — a table of hypothetical probes is noise, a table
-of "this bit us in EP-4471" is a checklist with teeth.
+acting on. Tell the user to open a PR on `RoadRunnerEngineering/rr-skills`
+that adds a probe row for it, and to cite the ticket that exposed the miss in
+the row. The probe table should grow from real misses, not from imagination — a
+table of hypothetical probes is noise, a table of misses with ticket keys is a
+checklist with teeth.
