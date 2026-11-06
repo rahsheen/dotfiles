@@ -89,8 +89,8 @@ where the code shows a real branch the ticket is silent on.
 | **Nullability & existing data** | The migration/schema. Is a new field nullable? What do rows created before this change do? Is a backfill needed, and does the ticket mention it? |
 | **Idempotency & concurrency** | Is this reachable twice — double-click, retry, a job that can re-run, a webhook that can redeliver? Does the code have a uniqueness constraint or a lock, or does the ticket assume one exists? |
 | **External dependencies** | Every network/service call on the path. What does the ticket say happens when it times out or 500s? Usually: nothing. |
-| **Blast radius** | Existing callers of a modified method/endpoint/component. For a changed page, also the inbound links and routes into it, with their query params — a link that hard-codes a param can override the new behavior (PT-1856). Does the ticket acknowledge them? |
-| **Point-in-time vs current** | A displayed or exported field that has both a value stored on the record and a live value on an associated record (e.g. a vendor ID on the synced bill vs on the vendor today). Which one does the ticket mean? Ask the reporter (PT-1842). |
+| **Blast radius** | Existing callers of a modified method/endpoint/component. For a changed page, also the inbound links and routes into it, with their query params — a link that hard-codes a param can override the new behavior. Does the ticket acknowledge them? |
+| **Point-in-time vs current** | A displayed or exported field that has both a value stored on the record and a live value on an associated record (e.g. a vendor ID on the synced bill vs on the vendor today). Which one does the ticket mean? Ask the reporter. |
 | **Test invalidation** | Existing specs on the path. Will this change break them, or worse, silently make them assert nothing? Include e2e specs (Playwright) that drive the affected page or endpoint. If an e2e impact skill such as `e2e-playwright` is installed, hand off to it for this probe: it finds specs that would keep passing without proving anything. |
 | **UI states** | Frontend tickets only. The component's loading, empty, and error states, and what a role without access sees (hidden or disabled). Does the ticket or design cover each state the component renders? |
 | **Rollout & reversibility** | Is this behind a flag? If it's wrong in production, what's the undo? Data migrations especially. |
@@ -205,6 +205,5 @@ Lead with the not-ready ones. That list is the actual output of grooming.
 When implementation uncovers a gap this check missed, that's the signal worth
 acting on. Tell the user to open a PR on `RoadRunnerEngineering/rr-skills`
 that adds a probe row for it, and to cite the ticket that exposed the miss in
-the row. The probe table should grow from real misses, not from imagination — a
-table of hypothetical probes is noise, a table of misses with ticket keys is a
-checklist with teeth.
+the PR description. The probe table should grow from real misses, not from
+imagination — a table of hypothetical probes is noise.
