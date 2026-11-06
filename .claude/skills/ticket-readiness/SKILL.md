@@ -55,7 +55,8 @@ Ready for Acceptance, or Done), a readiness check does not apply. Report the
 status and the open blocker from the latest comments, then stop.
 
 Read the description, the acceptance criteria, the comments (decisions often
-live only there), linked issues, and any attached design. Note what the ticket
+live only there), linked issues, and any attached design. View attachments
+with the `jira-attachments` skill when you have it. Note what the ticket
 *claims* — the actors, the entities, the trigger, the outcome.
 
 ### 2. Locate the code

@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Download a Jira issue's attachments so an agent can view them.
+# Usage: jira-attachments <ISSUE-KEY> [OUT_DIR]
+# Auth: the jira-cli config (server, login) plus $JIRA_API_TOKEN.
+set -euo pipefail
+
+key="${1:?usage: jira-attachments <ISSUE-KEY> [OUT_DIR]}"
+out="${2:-${TMPDIR:-/tmp}/jira-attachments}/$key"
+
+cfg="${JIRA_CONFIG_FILE:-$HOME/.config/.jira/.config.yml}"
+server="$(awk '/^server:/ {print $2}' "$cfg")"
+login="$(awk '/^login:/ {print $2}' "$cfg")"
+: "${JIRA_API_TOKEN:?JIRA_API_TOKEN is not set}"
+[ -n "$server" ] && [ -n "$login" ] || { echo "no server/login in $cfg" >&2; exit 1; }
+
+api() { curl -fsSL -u "$login:$JIRA_API_TOKEN" "$@"; }
+
+mkdir -p "$out"
+list="$(api "$server/rest/api/3/issue/$key?fields=attachment" \
+  | jq -r '.fields.attachment[] | [.id, .mimeType, .filename] | @tsv')"
+
+if [ -z "$list" ]; then
+  echo "$key has no attachments."
+  exit 0
+fi
+
+while IFS=$'\t' read -r id mime name; do
+  # The id prefix keeps two uploads with the same filename apart.
+  file="$out/${id}-${name//\//_}"
+  api -o "$file" "$server/rest/api/3/attachment/content/$id"
+  echo "$mime	$file"
+
+  if [[ "$mime" == video/* ]] && command -v ffmpeg >/dev/null; then
+    frames="$file.frames"
+    mkdir -p "$frames"
+    ffmpeg -loglevel error -y -i "$file" -vf "fps=1/2,scale=1280:-2" \
+      -frames:v 20 "$frames/%02d.png"
+    echo "frames	$frames/"
+  fi
+done <<< "$list"
