@@ -236,9 +236,9 @@ fi
 # Install pup, the Datadog CLI, if missing. macOS has a tap; Linux takes the
 # pinned release tarball. The site comes from ~/.config/pup/config.yaml.
 #
-# Auth is OAuth, once per machine. A Coder box has no browser, so tunnel the
-# callback: `ssh -L 8888:127.0.0.1:8888 coder.<ws>`, then
-# `PUP_OAUTH_CALLBACK_PORT=8888 pup auth login` on the box.
+# Auth is OAuth, once per machine. On a Coder box, run `pup auth login`, open
+# the printed URL on the Mac, then paste the failed 127.0.0.1 redirect URL
+# back into the prompt.
 if [[ -z `command -v pup` ]]; then
   case "${unameOut}" in
     Darwin*)
