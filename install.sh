@@ -30,17 +30,6 @@ cp .tool-versions $HOME
 mkdir -p $HOME/.claude
 cp -a .claude/. $HOME/.claude/
 
-# This repo is public. The autoMode block in settings.json describes work
-# infrastructure, so it lives in the private context repo. Claude Code reads it
-# only from ~/.claude/settings.json, so a filter strips it on commit and merges it
-# back on checkout. Only the bare repo commits; a Coder box gets it from `rr dev`.
-if [ -d "$HOME/.cfg" ]; then
-  git --git-dir="$HOME/.cfg" config filter.claude-private.clean "jq 'del(.autoMode)'"
-  git --git-dir="$HOME/.cfg" config filter.claude-private.smudge \
-    'f="$HOME/roadrunner/claude/automode.json"; if [ -f "$f" ]; then jq -s ".[0] * .[1]" - "$f"; else cat; fi'
-  git --git-dir="$HOME/.cfg" config filter.claude-private.required true
-fi
-
 # Env shim. Three jobs: put ~/.local/bin on PATH, pick up machine-local secrets
 # that can't live in this public repo (push-secrets writes ~/.zshenv.local), and
 # export the app secrets the Coder template drops in ~/.aws/.env.coder.

@@ -1,2 +1,0 @@
-# Strips work-only Claude settings (autoMode) on commit. install.sh sets the filter.
-.claude/settings.json filter=claude-private
