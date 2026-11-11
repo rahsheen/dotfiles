@@ -6,6 +6,7 @@ Write all prose in ASD-STE100 Simplified Technical English (20/25-word sentence 
 This includes chat, PR bodies, Jira comments, and commit messages.
 
 - Put the main point first.
+- Label each factual claim checked (give the command or `file:line`) or inferred.
 - State a fact one time. Do not restate it in a summary.
 - Do not use filler, hedges, or scene-setting.
 - For options or a design analysis, start with the seams and the real decisions. Put the
