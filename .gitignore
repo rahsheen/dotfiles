@@ -18,7 +18,6 @@ undodir
 .claude/skills/*
 !.claude/skills/e2e-playwright/
 !.claude/skills/pr-jira-status/
-!.claude/skills/jira-attachments/
 
 # bragdoc is deliberately NOT tracked: references/rr-rubric.md is a verbatim
 # export of an internal competency matrix and this repo is public.
