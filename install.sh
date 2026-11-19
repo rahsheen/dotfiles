@@ -25,8 +25,8 @@ cp .zshrc $HOME
 cp .tool-versions $HOME
 
 # Claude Code user config: CLAUDE.md, RTK.md, settings.json, the rtk PreToolUse
-# hook and the statusline script. Copied here, before skillsync and the herdr
-# skill install below, so those layer on top instead of being overwritten.
+# hook and the statusline script. Copied here, before the herdr skill install
+# below, so it layers on top instead of being overwritten.
 mkdir -p $HOME/.claude
 cp -a .claude/. $HOME/.claude/
 
@@ -412,54 +412,6 @@ if [[ "${unameOut}" == Darwin* ]]; then
     mv "$RTK_MAC_CONFIG" "$RTK_MAC_CONFIG.bak-$(date +%Y%m%d)"
   fi
   ln -sf "$HOME/.config/rtk/config.toml" "$RTK_MAC_CONFIG"
-fi
-
-# Clone the third-party agent-skill repos and install them as user-level skills.
-# Their marketplaces are blocked by enterprise policy, so skillsync installs the
-# contents directly. Source repos, refs and pins come from the tracked manifest.
-SKILLSYNC_SOURCES="$HOME/.config/agent-skills/sources.json"
-
-if [ -f "$SKILLSYNC_SOURCES" ]; then
-  if [[ -z `command -v jq` ]]; then
-    echo "ERROR: jq not found. Skipping agent skill sync."
-  elif [[ -z `command -v perl` ]]; then
-    echo "ERROR: perl not found. Skipping agent skill sync."
-  else
-    SKILLSYNC_ROOT="$(jq -r '.root // "~/Development/agent-skills"' "$SKILLSYNC_SOURCES")"
-    SKILLSYNC_ROOT="${SKILLSYNC_ROOT/#\~/$HOME}"
-    export SKILLSYNC_ROOT
-    export SKILLSYNC_SKILLS_DIR="$HOME/.claude/skills"
-    mkdir -p "$SKILLSYNC_ROOT" "$SKILLSYNC_SKILLS_DIR"
-
-    # Per-repo filters (exclusions, `disabled`) live alongside the clones.
-    cp -a "$HOME"/.config/agent-skills/filters/*.skillsync "$SKILLSYNC_ROOT/" 2>/dev/null || true
-
-    while IFS=$'\t' read -r dir url ref pin; do
-      [ -n "$dir" ] || continue
-      target="$SKILLSYNC_ROOT/$dir"
-      if [ ! -d "$target/.git" ]; then
-        echo "Cloning $dir from $url"
-        git clone --quiet "$url" "$target" || { echo "ERROR: clone failed: $url"; continue; }
-      else
-        echo "$dir is already cloned. Fetching..."
-        git -C "$target" fetch --quiet --tags origin || true
-      fi
-      if [ "$pin" != "null" ]; then
-        git -C "$target" checkout --quiet --detach "$pin" \
-          || echo "WARN: $dir: pin $pin not found; left at $(git -C "$target" rev-parse --short HEAD)"
-      else
-        git -C "$target" checkout --quiet "$ref" 2>/dev/null \
-          && git -C "$target" merge --quiet --ff-only "origin/$ref" 2>/dev/null || true
-      fi
-    done < <(jq -r '.repos[] | select(.enabled != false)
-                    | [.dir, .url, (.ref // "main"), (.pin // "null")] | @tsv' "$SKILLSYNC_SOURCES")
-
-    if [[ -n `command -v skillsync` ]]; then
-      skillsync
-    else
-      echo "WARN: skillsync not on PATH; expected $HOME/.local/bin/skillsync"
-    fi
-  fi
 fi
 
 # Install Herdr (terminal workspace manager for coding agents). The curl

@@ -36,7 +36,8 @@ truly ambiguous.
 
 - A `+N more` marker means rtk summarized the output. Use `rtk bypass` for that one command
   only. Prefer the Grep and Read tools to shell `grep` and `cat`.
-- Third-party skills install with `skillsync` from clones in `~/Development/agent-skills/`
+- Third-party skills: on a personal machine, `~/.claude/settings.json` installs them as plugins.
+  On a work machine, `skillsync` installs them from the work context repo's `claude/skillsync/`
   (runbook: its `README.md`).
 
 # Work context

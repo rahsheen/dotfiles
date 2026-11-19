@@ -88,13 +88,29 @@
     "typescript-lsp@roadrunner-agent-skills": true,
     "ruby-lsp@roadrunner-agent-skills": true,
     "roadrunner-workflow-skills@roadrunner-agent-skills": true,
-    "approved-example-skills@roadrunner-agent-skills": true
+    "approved-example-skills@roadrunner-agent-skills": true,
+    "mattpocock-skills@mattpocock": true,
+    "layered-rails@palkan-skills": true
   },
   "extraKnownMarketplaces": {
     "roadrunner-agent-skills": {
       "source": {
         "source": "github",
         "repo": "RoadRunnerEngineering/rr-skills"
+      }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills",
+        "ref": "5beb35b040e3de97e54fa9e386d7e42d15c295c2"
+      }
+    },
+    "palkan-skills": {
+      "source": {
+        "source": "github",
+        "repo": "palkan/skills",
+        "ref": "f4e8cd90ae388339d53bc05a3826034d0df56255"
       }
     }
   },

@@ -7,12 +7,17 @@
 # equivalents that load with no policy check. This reads each clone's own manifest
 # (.claude-plugin/marketplace.json or plugin.json) and installs from it.
 #
-#   skillsync --dry-run              # show what would happen (do this first)
-#   skillsync                        # install / update / prune
-#   skillsync --adopt layered-rails  # replace a pre-existing copy (backed up first)
-#   skillsync --list                 # show what skillsync currently owns
+#   skillsync --sources FILE --dry-run   # show what would happen (do this first)
+#   skillsync --sources FILE             # clone / pin / install / update / prune
+#   skillsync --sources FILE --adopt layered-rails  # replace a pre-existing copy (backed up first)
+#   skillsync --list                     # show what skillsync currently owns
 #
-# Update flow:  cd <clone> && git pull && skillsync
+# FILE (or $SKILLSYNC_SOURCES) is a sources.json: { root, repos: [{dir, url, ref,
+# pin, enabled}] }. Only the enabled repos it lists are cloned and installed. A
+# repo removed from it is pruned on the next run. Per-repo filters are
+# <FILE dir>/filters/<dir>.skillsync: a "disabled" line, or "-glob" exclusions.
+#
+# Update flow:  bump `pin` in FILE after reading the upstream diff, then rerun.
 #
 # Skills are symlinked, so a pull is live immediately. Commands and agents are
 # copied because their plugin-relative links (`](../skills/...)`,
@@ -25,7 +30,7 @@
 
 set -euo pipefail
 
-ROOT="${SKILLSYNC_ROOT:-$HOME/Development/agent-skills}"
+SOURCES="${SKILLSYNC_SOURCES:-}"
 SKILLS_DIR="${SKILLSYNC_SKILLS_DIR:-$HOME/.claude/skills}"   # Claude Code's native user-skills dir
 CMD_DIR="${SKILLSYNC_CMD_DIR:-$HOME/.claude/commands}"
 AGENT_DIR="${SKILLSYNC_AGENT_DIR:-$HOME/.claude/agents}"
@@ -45,9 +50,11 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -n|--dry-run) DRY_RUN=1 ;;
     --list)       LIST_ONLY=1 ;;
+    --sources)    SOURCES="$2"; shift ;;
+    --sources=*)  SOURCES="${1#--sources=}" ;;
     --adopt)      ADOPT="$ADOPT ${2//,/ }"; shift ;;
     --adopt=*)    ADOPT="$ADOPT ${1#--adopt=}"; ADOPT="${ADOPT//,/ }" ;;
-    -h|--help)    sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help)    sed -n '2,35p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "skillsync: unknown option $1" >&2; exit 2 ;;
   esac
   shift
@@ -83,6 +90,39 @@ if [ "$LIST_ONLY" = 1 ]; then
   fi
   exit 0
 fi
+
+[ -n "$SOURCES" ] || { echo "skillsync: --sources FILE (or \$SKILLSYNC_SOURCES) is required" >&2; exit 2; }
+[ -f "$SOURCES" ] || { echo "skillsync: no sources file at $SOURCES" >&2; exit 1; }
+FILTER_DIR="$(cd "$(dirname "$SOURCES")" && pwd)/filters"
+ROOT="${SKILLSYNC_ROOT:-$(jq -r '.root // "~/Development/agent-skills"' "$SOURCES")}"
+ROOT="${ROOT/#\~/$HOME}"
+
+# Clone or fetch each enabled repo, then move it to its pin (or the tip of ref).
+REPOS="$WORK/repos"; : >"$REPOS"
+echo "==> fetching sources into $ROOT"
+while IFS=$'\t' read -r dir url ref pin; do
+  [ -n "$dir" ] || continue
+  target="$ROOT/$dir"
+  if [ ! -d "$target/.git" ]; then
+    if [ "$DRY_RUN" = 1 ]; then echo "    would clone $dir from $url"; continue; fi
+    mkdir -p "$ROOT"
+    git clone --quiet "$url" "$target" || { note "WARN  clone failed: $url"; continue; }
+  elif [ "$DRY_RUN" = 0 ]; then
+    git -C "$target" fetch --quiet --tags origin || note "WARN  fetch failed for $dir; using local state"
+  fi
+  if [ "$DRY_RUN" = 0 ]; then
+    if [ "$pin" != "null" ]; then
+      git -C "$target" checkout --quiet --detach "$pin" \
+        || note "WARN  $dir: pin $pin not found; left at $(git -C "$target" rev-parse --short HEAD)"
+    else
+      note "WARN  $dir has no pin; following the tip of $ref unreviewed"
+      git -C "$target" checkout --quiet "$ref" 2>/dev/null \
+        && git -C "$target" merge --quiet --ff-only "origin/$ref" 2>/dev/null || true
+    fi
+  fi
+  echo "$target" >>"$REPOS"
+done < <(jq -r '.repos[] | select(.enabled != false)
+                | [.dir, .url, (.ref // "main"), (.pin // "null")] | @tsv' "$SOURCES")
 
 owns() { cut -f2 "$OWNED" | grep -qxF "$1"; }
 
@@ -130,12 +170,12 @@ declared() { # repo plugin_name plugin_root key
 }
 
 repo_disabled() { # a <repo>.skillsync file containing the line "disabled" skips the repo entirely
-  local filt="$ROOT/$(basename "$1").skillsync"
+  local filt="$FILTER_DIR/$(basename "$1").skillsync"
   [ -f "$filt" ] && grep -qx "disabled" "$filt"
 }
 
 excluded() { # repo_dir rel_path — honours <repo>.skillsync exclusion lines ("-glob")
-  local filt="$ROOT/$(basename "$1").skillsync" rel="$2" line
+  local filt="$FILTER_DIR/$(basename "$1").skillsync" rel="$2" line
   [ -f "$filt" ] || return 1
   while read -r line; do
     case "$line" in
@@ -145,9 +185,8 @@ excluded() { # repo_dir rel_path — honours <repo>.skillsync exclusion lines ("
   return 1
 }
 
-echo "==> scanning $ROOT"
-for repo in "$ROOT"/*/; do
-  repo="${repo%/}"
+echo "==> scanning the listed repos"
+while read -r -u 3 repo; do
   [ -d "$repo/.git" ] || continue
   if repo_disabled "$repo"; then
     echo "--> $(basename "$repo")  [disabled by $(basename "$repo").skillsync]"
@@ -230,7 +269,7 @@ EOF
       note "HOOKS $pname ships hooks/hooks.json — NOT installed (no user-level equivalent). To enable, merge into ~/.claude/settings.json with \${CLAUDE_PLUGIN_ROOT} replaced by $proot:
 $(sed "s|\${CLAUDE_PLUGIN_ROOT}|$proot|g; s/^/        /" "$proot/hooks/hooks.json")"
   done < <(plugin_entries "$repo")
-done
+done 3<"$REPOS"
 
 # Duplicate agent frontmatter names across repos are a real conflict: the file
 # name is namespaced by nothing, and Claude Code keys agents by frontmatter name.
