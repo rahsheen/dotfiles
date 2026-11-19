@@ -17,7 +17,6 @@ undodir
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/e2e-playwright/
-!.claude/skills/ticket-readiness/
 !.claude/skills/pr-jira-status/
 !.claude/skills/jira-attachments/
 
