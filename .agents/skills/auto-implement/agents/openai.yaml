@@ -1,0 +1,5 @@
+interface:
+  display_name: "Auto Implement"
+  short_description: "Implement agreed work with TDD, review, and commits"
+policy:
+  allow_implicit_invocation: true
