@@ -14,8 +14,8 @@ skills-install             # apply
 | Layer | Owner | Runs on | Installs |
 |---|---|---|---|
 | Personal | dotfiles: `skills-install` reads `sources.json` in this folder | every machine | mattpocock, layered-rails, herdr |
-| Work | context repo (step 2, not built) | work machines | `claude/skills/*`, rr-skills plugins |
-| Orchestration | rr-tui (`rr dev`) | Coder boxes | nothing after step 3; it runs `install.sh`, then the context script |
+| Work | context repo: `claude/install-skills` (its `claude/README.md`) | work machines | `claude/skills/*`, rr-skills plugins |
+| Orchestration | rr-tui (`rr dev`) | Coder boxes | nothing itself; Coder runs `install.sh`, and `rr dev` runs the context script |
 
 ## Methods
 
@@ -54,13 +54,34 @@ The Claude plugins and skillsync use the same SHA: the `ref` in `settings.json` 
 `pin` in `sources.json`. Bump both after you read the upstream diff. The Codex commands
 follow upstream, because their installers take no pin.
 
-## Next steps
+## rr-skills entries in settings.json
 
-1. Context repo: a work manifest with rr-skills, and `claude/install-skills`. Cut
-   `claude/skillsync/sources.json` to work-only repos. It shares skillsync's record
-   (`~/.claude/.skillsync.json`) with this file, so a run with a smaller list prunes the
-   personal skills. Give it its own record, or delete the rr dev skillsync step first.
-2. rr-tui: replace `INSTALL_PLUGINS`, `LINK_SKILLS`, and `THIRD_PARTY_SKILLS` with one
-   call to the context script.
-3. Move the rr-skills entries out of `~/.claude/settings.json` and remove
-   `~/.config/claude/work-settings.json`.
+`settings.json` also declares the work rr-skills plugins. They stay there. If they moved
+out, `claude plugin install` on the Mac would write them back into this tracked file at
+each run. On a personal machine the private marketplace does not load, and nothing breaks.
+
+## skillsync
+
+`~/.local/bin/skillsync` is the restricted Claude fallback. Only this `sources.json` drives
+it, so only one list ever owns its record, `~/.claude/.skillsync.json`.
+
+```sh
+skillsync --sources ~/.config/skills/sources.json --dry-run   # preview
+skillsync --list                                              # what it owns
+```
+
+- It clones each enabled repo into `root` and checks out its `pin`. A repo with no pin
+  follows the tip of `ref`, and the run prints a warning.
+- It reads each repo's `.claude-plugin/marketplace.json` or `plugin.json`. It does not glob
+  for `SKILL.md`, so `deprecated/` and `in-progress/` folders stay out.
+- It links skills, so a checkout change is live at once. It copies commands and agents and
+  changes plugin-relative links and `${CLAUDE_PLUGIN_ROOT}` to absolute paths.
+- It changes only the paths in its own record and skips a file it did not make.
+  `--adopt <name>` moves that file to `~/.claude/skills-local/` and installs over it.
+- It does not install plugin `hooks/`. It prints a `settings.json` block to paste.
+- Filters: `filters/<dir>.skillsync` in this folder. A `-glob` line excludes the paths
+  that match. A line that is exactly `disabled` skips the repo.
+- To remove a repo, delete its entry or set `"enabled": false`. The next run prunes it.
+
+A skill must be `<name>/SKILL.md`, one level below the skills directory. A loose `.md`
+file or a deeper folder does not register.
