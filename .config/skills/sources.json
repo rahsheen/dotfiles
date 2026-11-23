@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "Preferred skill repos for every machine. skills-install reads this file; the design",
+    "is in README.md beside it. skillsync reads the same file for the restricted Claude",
+    "fallback, so the format is skillsync's, plus a codex list of native commands.",
+    "",
+    "pin   - exact SHA for the skillsync fallback. Keep it equal to the ref in",
+    "        ~/.claude/settings.json. Bump both after you read the upstream diff.",
+    "codex - native Codex install commands, from each repo's README."
+  ],
+  "root": "~/Development/agent-skills",
+  "repos": [
+    {
+      "dir": "mattpocock-skills",
+      "url": "https://github.com/mattpocock/skills.git",
+      "ref": "main",
+      "pin": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+      "codex": [
+        "codex plugin marketplace add mattpocock/skills",
+        "codex plugin add mattpocock-skills@mattpocock"
+      ]
+    },
+    {
+      "dir": "palkan-skills",
+      "url": "https://github.com/palkan/layered-rails-skills.git",
+      "ref": "v3.1.0",
+      "pin": "8fb4b26b674dc01612d582f0328bc6cf9bb0ce85",
+      "codex": [
+        "npx -y skills add palkan/layered-rails-skills --skill layered-rails -a codex -g -y"
+      ]
+    }
+  ]
+}

@@ -25,8 +25,8 @@ cp .zshrc $HOME
 cp .tool-versions $HOME
 
 # Claude Code user config: CLAUDE.md, RTK.md, settings.json, the rtk PreToolUse
-# hook and the statusline script. Copied here, before the herdr skill install
-# below, so it layers on top instead of being overwritten.
+# hook and the statusline script. Copied here, before skills-install below, so
+# the skills layer on top instead of being overwritten.
 mkdir -p $HOME/.claude
 cp -a .claude/. $HOME/.claude/
 
@@ -427,29 +427,6 @@ else
   echo "Herdr is already installed."
 fi
 
-# Install the Herdr agent skill (teaches agents to drive herdr when HERDR_ENV=1).
-# Prefer the copy bundled with the installed binary so skill and binary always
-# match; fall back to a pinned upstream copy on builds older than 0.8.0.
-HERDR_SKILL_REF="v0.8.0"
-HERDR_SKILL_URL="https://raw.githubusercontent.com/herdrdev/herdr/${HERDR_SKILL_REF}/skills/herdr/SKILL.md"
-HERDR_SKILL_DIR="$HOME/.claude/skills/herdr"
-
-if [[ -n `command -v herdr` ]]; then
-  mkdir -p "$HERDR_SKILL_DIR"
-  if herdr --skill > "$HERDR_SKILL_DIR/SKILL.md.tmp" 2>/dev/null \
-     && [ -s "$HERDR_SKILL_DIR/SKILL.md.tmp" ]; then
-    mv "$HERDR_SKILL_DIR/SKILL.md.tmp" "$HERDR_SKILL_DIR/SKILL.md"
-    echo "Installed Herdr agent skill (bundled with the installed binary)."
-  else
-    rm -f "$HERDR_SKILL_DIR/SKILL.md.tmp"
-    echo "'herdr --skill' unavailable (needs 0.8.0+); fetching ${HERDR_SKILL_REF} from upstream..."
-    if [[ -n `command -v curl` ]] && curl -fsSL "$HERDR_SKILL_URL" -o "$HERDR_SKILL_DIR/SKILL.md"; then
-      echo "Installed Herdr agent skill (upstream ${HERDR_SKILL_REF})."
-    else
-      echo "ERROR: could not install the Herdr agent skill."
-    fi
-  fi
-fi
 
 # Herdr's Claude integration: a SessionStart hook that reports session refs, so
 # Claude panes resume their conversations after a herdr server restart. Its
@@ -477,3 +454,7 @@ if [[ -z `command -v claude` ]]; then
 else
   echo "Claude Code is already installed ($(claude --version))."
 fi
+
+# Skills for each agent harness on PATH, so this runs after the harness installs.
+# Design: ~/.config/skills/README.md.
+"$HOME/.local/bin/skills-install" || echo "ERROR: skills-install failed."

@@ -36,9 +36,8 @@ truly ambiguous.
 
 - A `+N more` marker means rtk summarized the output. Use `rtk bypass` for that one command
   only. Prefer the Grep and Read tools to shell `grep` and `cat`.
-- Third-party skills: on a personal machine, `~/.claude/settings.json` installs them as plugins.
-  On a work machine, `skillsync` installs them from the work context repo's `claude/skillsync/`
-  (runbook: its `README.md`).
+- Third-party skills: `install.sh` runs `skills-install`, which installs them for each harness on
+  PATH. Design and runbook: `~/.config/skills/README.md`.
 
 # Work context
 
@@ -51,6 +50,8 @@ Work rules (Coyote, Jira, `rr`, Confluence) live in `~/roadrunner/CLAUDE.md`, in
   explicit `git add`. Do not commit secrets.
 - `~/Library/Application Support/coderv2/dotfiles` is a decoy clone. Do not edit it.
 - Put work-only provisioning in `rr dev` (`~/roadrunner/rr-tui`), not in `install.sh` conditionals.
+  Exception: `skills-install` checks for a restricted environment (`$CODER` or a marketplace
+  policy), not for a work machine. Do not check hostnames.
 
 # Environment
 

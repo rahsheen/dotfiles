@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+# skills-install — install the preferred skills for each agent harness on PATH.
+# Design: ~/.config/skills/README.md. Sources: ~/.config/skills/sources.json.
+#
+#   skills-install --dry-run   # print each decision, change nothing
+#   skills-install             # apply
+
+set -uo pipefail
+
+SOURCES="${SKILLS_SOURCES:-$HOME/.config/skills/sources.json}"
+DRY_RUN=0
+case "${1:-}" in
+  "") ;;
+  -n|--dry-run) DRY_RUN=1 ;;
+  -h|--help) sed -n '3,7p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  *) echo "skills-install: unknown option $1" >&2; exit 2 ;;
+esac
+
+# install.sh calls this right after it installs claude into ~/.local/bin.
+export PATH="$HOME/.local/bin:$PATH"
+command -v jq > /dev/null || { echo "skills-install: jq is required" >&2; exit 1; }
+[ -f "$SOURCES" ] || { echo "skills-install: no sources file at $SOURCES" >&2; exit 1; }
+
+has() { command -v "$1" > /dev/null 2>&1; }
+
+# A new Coder box has no remote-settings.json until Claude logs in, so $CODER
+# comes first. Hostnames are not used.
+restricted_reason() {
+  if [ -n "${CODER:-}" ]; then echo "Coder workspace"; return; fi
+  local f
+  for f in "$HOME/.claude/remote-settings.json" \
+           "/Library/Application Support/ClaudeCode/managed-settings.json" \
+           "/etc/claude-code/managed-settings.json"; do
+    if [ -f "$f" ] && jq -e 'has("strictKnownMarketplaces")' "$f" > /dev/null 2>&1; then
+      echo "strictKnownMarketplaces in $f"; return
+    fi
+  done
+}
+
+# ------------------------------------------------------------------- claude ---
+if has claude; then
+  why="$(restricted_reason)"
+  if [ -n "$why" ]; then
+    echo "==> claude: restricted ($why); skillsync installs the sources"
+    if [ "$DRY_RUN" = 1 ]; then
+      skillsync --sources "$SOURCES" --dry-run || echo "WARN skillsync dry run failed"
+    else
+      skillsync --sources "$SOURCES" || echo "WARN skillsync failed"
+    fi
+  else
+    echo "==> claude: not restricted; ~/.claude/settings.json installs the plugins"
+  fi
+else
+  echo "==> claude: not on PATH; skipped"
+fi
+
+# -------------------------------------------------------------------- codex ---
+if has codex; then
+  echo "==> codex: native install commands"
+  while IFS=$'\t' read -r dir cmd; do
+    [ -n "$dir" ] || continue
+    if [ "$DRY_RUN" = 1 ]; then
+      echo "    $dir: would run: $cmd"
+    elif bash -c "$cmd" < /dev/null; then
+      echo "    $dir: OK $cmd"
+    else
+      echo "WARN $dir: failed: $cmd"
+    fi
+  done < <(jq -r '.repos[] | select(.enabled != false) | .dir as $d
+                  | (.codex // [])[] | [$d, .] | @tsv' "$SOURCES")
+else
+  echo "==> codex: not on PATH; skipped"
+fi
+
+# -------------------------------------------------------------------- herdr ---
+# The binary bundles its own skill, so skill and binary always match. Builds
+# older than 0.8.0 lack `herdr --skill`; those get a pinned upstream copy.
+HERDR_SKILL_REF="v0.8.0"
+HERDR_SKILL_URL="https://raw.githubusercontent.com/herdrdev/herdr/${HERDR_SKILL_REF}/skills/herdr/SKILL.md"
+
+install_herdr_skill() { # skills_dir
+  local dir="$1/herdr"
+  if [ "$DRY_RUN" = 1 ]; then echo "    would write $dir/SKILL.md"; return; fi
+  mkdir -p "$dir"
+  if herdr --skill > "$dir/SKILL.md.tmp" 2> /dev/null && [ -s "$dir/SKILL.md.tmp" ]; then
+    mv "$dir/SKILL.md.tmp" "$dir/SKILL.md"
+    echo "    OK $dir (bundled with the binary)"
+  else
+    rm -f "$dir/SKILL.md.tmp"
+    if has curl && curl -fsSL "$HERDR_SKILL_URL" -o "$dir/SKILL.md"; then
+      echo "    OK $dir (upstream ${HERDR_SKILL_REF})"
+    else
+      echo "WARN could not install the herdr skill into $dir"
+    fi
+  fi
+}
+
+if has herdr; then
+  echo "==> herdr: skill from the binary"
+  has claude && install_herdr_skill "$HOME/.claude/skills"
+  has codex && install_herdr_skill "$HOME/.agents/skills"
+else
+  echo "==> herdr: not on PATH; skipped"
+fi
+exit 0

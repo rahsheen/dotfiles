@@ -109,7 +109,7 @@
     "palkan-skills": {
       "source": {
         "source": "github",
-        "repo": "palkan/skills",
+        "repo": "palkan/layered-rails-skills",
         "ref": "8fb4b26b674dc01612d582f0328bc6cf9bb0ce85"
       }
     }
