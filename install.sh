@@ -455,6 +455,18 @@ else
   echo "Claude Code is already installed ($(claude --version))."
 fi
 
+if [[ -z `command -v jq` ]]; then
+  case "${unameOut}" in
+    Darwin*) brew install jq || echo "ERROR: jq install failed." ;;
+    Linux*)
+      if command -v apt-get > /dev/null; then
+        sudo apt-get install -y jq || echo "ERROR: jq install failed."
+      else
+        echo "ERROR: no apt-get; install jq by hand."
+      fi ;;
+  esac
+fi
+
 # Skills for each agent harness on PATH, so this runs after the harness installs.
 # Design: ~/.config/skills/README.md.
 "$HOME/.local/bin/skills-install" || echo "ERROR: skills-install failed."
