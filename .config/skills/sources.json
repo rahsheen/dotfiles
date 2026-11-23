@@ -1,32 +1,96 @@
 {
   "_comment": [
-    "Preferred skill repos for every machine. skills-install reads this file; the design",
-    "is in README.md beside it. skillsync reads the same file for the restricted Claude",
-    "fallback, so the format is skillsync's, plus a codex list of native commands.",
-    "",
-    "pin   - exact SHA for the skillsync fallback. Keep it equal to the ref in",
-    "        ~/.claude/settings.json. Bump both after you read the upstream diff.",
-    "codex - native Codex install commands, from each repo's README."
+    "Exact source pins and installation methods for skills-install.",
+    "Restore never advances pins. skills-update proposes a new pin for review.",
+    "skillsync reads the same repo fields for restricted Claude plugin fallback."
   ],
-  "root": "~/Development/agent-skills",
+  "root": "~/.local/share/agent-skill-sources",
   "repos": [
     {
       "dir": "mattpocock-skills",
       "url": "https://github.com/mattpocock/skills.git",
       "ref": "main",
       "pin": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
-      "codex": [
-        "codex plugin marketplace add mattpocock/skills",
-        "codex plugin add mattpocock-skills@mattpocock"
-      ]
+      "skills": {
+        "ask-matt": "skills/engineering/ask-matt",
+        "diagnosing-bugs": "skills/engineering/diagnosing-bugs",
+        "grill-with-docs": "skills/engineering/grill-with-docs",
+        "triage": "skills/engineering/triage",
+        "improve-codebase-architecture": "skills/engineering/improve-codebase-architecture",
+        "setup-matt-pocock-skills": "skills/engineering/setup-matt-pocock-skills",
+        "tdd": "skills/engineering/tdd",
+        "to-spec": "skills/engineering/to-spec",
+        "to-tickets": "skills/engineering/to-tickets",
+        "wayfinder": "skills/engineering/wayfinder",
+        "implement": "skills/engineering/implement",
+        "implement-spec": "skills/engineering/implement-spec",
+        "prototype": "skills/engineering/prototype",
+        "research": "skills/engineering/research",
+        "domain-modeling": "skills/engineering/domain-modeling",
+        "codebase-design": "skills/engineering/codebase-design",
+        "code-review": "skills/engineering/code-review",
+        "pr": "skills/engineering/pr",
+        "retro": "skills/engineering/retro",
+        "wizard": "skills/engineering/wizard",
+        "grill-me": "skills/productivity/grill-me",
+        "grilling": "skills/productivity/grilling",
+        "handoff": "skills/productivity/handoff",
+        "teach": "skills/productivity/teach",
+        "to-questionnaire": "skills/productivity/to-questionnaire",
+        "wait-what": "skills/productivity/wait-what",
+        "writing-for-agents": "skills/productivity/writing-for-agents"
+      },
+      "targets": {
+        "codex": "skills",
+        "claude": "skills"
+      },
+      "replaces": {
+        "codex": [
+          "mattpocock-skills@mattpocock"
+        ],
+        "claude": [
+          "mattpocock-skills@mattpocock"
+        ]
+      }
     },
     {
       "dir": "palkan-skills",
       "url": "https://github.com/palkan/layered-rails-skills.git",
       "ref": "v3.1.0",
       "pin": "8fb4b26b674dc01612d582f0328bc6cf9bb0ce85",
-      "codex": [
-        "npx -y skills add palkan/layered-rails-skills --skill layered-rails -a codex -g -y"
+      "skills": {
+        "layered-rails": "layered-rails/skills/layered-rails"
+      },
+      "targets": {
+        "codex": "skills",
+        "claude": "plugin"
+      },
+      "plugin": {
+        "id": "layered-rails@layered-rails-skills",
+        "path": "layered-rails",
+        "version": "3.1.0"
+      },
+      "replaces": {
+        "claude": [
+          "layered-rails@palkan-skills"
+        ]
+      }
+    }
+  ],
+  "schema": 2,
+  "skills_cli_version": "1.5.18",
+  "binary_skills": [
+    {
+      "name": "herdr",
+      "command": [
+        "herdr",
+        "--skill"
+      ],
+      "fallback_url": "https://raw.githubusercontent.com/herdrdev/herdr/v0.8.0/skills/herdr/SKILL.md",
+      "fallback_ref": "v0.8.0",
+      "agents": [
+        "codex",
+        "claude"
       ]
     }
   ]

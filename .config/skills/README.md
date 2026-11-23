@@ -1,87 +1,137 @@
-# Skills install
+# Skills installation
 
-`install.sh` runs `~/.local/bin/skills-install`. It installs my preferred skills for each
-agent harness on PATH, on every machine. Each harness uses the method that the skill repo
-recommends. skillsync runs only where policy blocks that method. rr-tui is not necessary.
+`install.sh` copies this configuration and the installer into your home directory.
+It then runs `skills-install`. Installation failures make both commands exit nonzero.
 
 ```sh
-skills-install --dry-run   # print each decision, change nothing
-skills-install             # apply
+skills-install --dry-run  # show sources, exact pins, targets, and methods
+skills-install           # restore, migrate previous installations, then verify
+skills-install --check   # check sources and installed files; do not install
+skills-update mattpocock-skills --ref main
+skills-update palkan-skills --ref v3.1.0
 ```
 
-## Layers
+## Sources and ownership
 
-| Layer | Owner | Runs on | Installs |
-|---|---|---|---|
-| Personal | dotfiles: `skills-install` reads `sources.json` in this folder | every machine | mattpocock, layered-rails, herdr |
-| Work | context repo: `claude/install-skills` (its `claude/README.md`) | work machines | `claude/skills/*`, rr-skills plugins |
-| Orchestration | rr-tui (`rr dev`) | Coder boxes | nothing itself; Coder runs `install.sh`, and `rr dev` runs the context script |
+`sources.json` is the source of truth. It declares exact commit pins and selected skill paths.
+Each source declares its installation method for Codex and Claude.
+An agent absent from `PATH` is skipped.
 
-## Methods
-
-| Harness | Not restricted | Restricted |
+| Source | Codex | Claude |
 |---|---|---|
-| Claude | `~/.claude/settings.json` declares the plugins (`extraKnownMarketplaces`, `enabledPlugins`). Claude installs them. | `skillsync --sources sources.json` links the skills into `~/.claude/skills`. |
-| Codex | The `codex` commands in `sources.json`, from each repo's README. | Codex has no policy here. |
-| herdr skill | `herdr --skill`, written into `~/.claude/skills` and `~/.agents/skills` for each harness on PATH. | same |
+| Matt Pocock | Generic skill directories | Generic skill directories |
+| Layered Rails | Generic skill directory | Full native plugin |
+| Herdr | Binary-provided skill, or pinned fallback | Same |
 
-A harness that is not on PATH is skipped. Codex does not run on work machines, so its
-commands do nothing there. Test them on a personal machine.
+The implementation is `~/.local/bin/skills-manager.py`.
+It uses Python 3.9 or later, Git, and the declared installer tools.
+The shell wrappers prefer `/usr/bin/python3` to avoid an unconfigured asdf shim.
+Generic installation needs Node.js and npx. The skills CLI version is pinned in the manifest.
+Native installation needs the Claude CLI. Restricted installation also needs `skillsync`, jq, and Perl.
 
-Install exactly one method for each harness. Two methods give every skill twice
-(`mattpocock/skills` `README.md:27`). On a restricted machine, the policy blocks the
-`settings.json` plugins, so only the skillsync copy loads.
+Personal skills belong here. Work-specific skills remain owned by the work context repository.
+Project-specific skills belong in their project repositories.
+Do not add authentication, agent sessions, or unrelated runtime data to these dotfiles.
 
-## Restricted check
+## Restoration
 
-One decision for the whole machine. Claude is restricted when either is true:
+Git sources are fetched at their exact pin into:
 
-1. `$CODER` is set. The Coder agent sets it in every workspace (checked on `pt-1996`,
-   2026-11-23).
-2. `strictKnownMarketplaces` is in `~/.claude/remote-settings.json` or in a system
-   `managed-settings.json`.
-
-Claude writes `remote-settings.json` from the org's server-managed settings after login.
-On a new Coder box it does not exist yet when `install.sh` runs, so check 1 covers that
-case. Check 2 covers the work Mac. Hostnames are not used.
-
-On the work Mac, `anthropics/claude-plugins-official` is blocked (checked:
-`claude plugin marketplace add` returned "blocked by enterprise policy", 2026-11-23).
-
-## Pins
-
-The Claude plugins and skillsync use the same SHA: the `ref` in `settings.json` and the
-`pin` in `sources.json`. Bump both after you read the upstream diff. The Codex commands
-follow upstream, because their installers take no pin.
-
-## rr-skills entries in settings.json
-
-`settings.json` also declares the work rr-skills plugins. They stay there. If they moved
-out, `claude plugin install` on the Mac would write them back into this tracked file at
-each run. On a personal machine the private marketplace does not load, and nothing breaks.
-
-## skillsync
-
-`~/.local/bin/skillsync` is the restricted Claude fallback. Only this `sources.json` drives
-it, so only one list ever owns its record, `~/.claude/.skillsync.json`.
-
-```sh
-skillsync --sources ~/.config/skills/sources.json --dry-run   # preview
-skillsync --list                                              # what it owns
+```text
+~/.local/share/agent-skill-sources/<source>/<commit>/
 ```
 
-- It clones each enabled repo into `root` and checks out its `pin`. A repo with no pin
-  follows the tip of `ref`, and the run prints a warning.
-- It reads each repo's `.claude-plugin/marketplace.json` or `plugin.json`. It does not glob
-  for `SKILL.md`, so `deprecated/` and `in-progress/` folders stay out.
-- It links skills, so a checkout change is live at once. It copies commands and agents and
-  changes plugin-relative links and `${CLAUDE_PLUGIN_ROOT}` to absolute paths.
-- It changes only the paths in its own record and skips a file it did not make.
-  `--adopt <name>` moves that file to `~/.claude/skills-local/` and installs over it.
-- It does not install plugin `hooks/`. It prints a `settings.json` block to paste.
-- Filters: `filters/<dir>.skillsync` in this folder. A `-glob` line excludes the paths
-  that match. A line that is exactly `disabled` skips the repo.
-- To remove a repo, delete its entry or set `"enabled": false`. The next run prunes it.
+Existing clean snapshots are reused without fetching upstream.
+A different pin gets another snapshot. Dirty snapshots cause an error.
+The installer checks each declared skill path before installation.
 
-A skill must be `<name>/SKILL.md`, one level below the skills directory. A loose `.md`
-file or a deeper folder does not register.
+Generic installation uses `npx skills@<version> add <local-snapshot>`.
+It passes explicit skill names, the target agent, global scope, and copy mode.
+Copies preserve complete skill directories, including references, scripts, and Codex metadata.
+Codex receives `~/.agents/skills/<name>`; Claude receives `~/.claude/skills/<name>`.
+Only the manifest-selected skills are installed. Broad discovery can include experimental skills.
+
+Claude installs Layered Rails from the pinned snapshot as a local marketplace.
+Its canonical plugin ID is `layered-rails@layered-rails-skills`.
+The complete plugin retains its eight commands and two agent definitions.
+The installer verifies the plugin payload, installation record, and enabled user setting.
+It does not rely on Claude eventually installing a settings declaration.
+
+Herdr uses `herdr --skill` when supported. Older binaries use the declared fallback URL.
+Writes are atomic. Failed downloads leave the previous skill file intact.
+A version and content record avoids downloading an unchanged fallback on every restore.
+
+## Migration and repair
+
+After replacement content passes verification, the installer disables the old Claude plugin IDs.
+It removes the old Matt Codex plugin through Codex's CLI.
+Other plugins and settings are preserved.
+The dotfiles settings no longer declare these third-party plugins independently.
+Claude writes local marketplace paths into runtime settings. Keep those machine-specific paths out of commits.
+
+Standalone Layered Rails copies are removed from Claude after its native plugin passes verification.
+Previous skill folders, symlinks, settings, and repaired plugin caches are backed up under:
+
+```text
+~/.local/state/agent-skills/backups/
+```
+
+A matching legacy symlink is also replaced with a pinned copy.
+Modified copies are backed up before restoration. Custom skills with other names are untouched.
+Declared names are installer-owned; keep personal variants under different names.
+Disabled or removed sources are skipped, not automatically deleted.
+Remove their old runtime files deliberately when retiring a source.
+Do not run another global skill updater against these managed names.
+
+## Verification
+
+`--check` does not fetch pinned sources, install packages, or perform migrations.
+It requires the pinned snapshots from restoration.
+It compares every delivered skill file with its pinned source.
+It detects missing references, broken links, changed files, and lost Codex metadata.
+It checks complete native plugin payloads and enabled user settings.
+It reports enabled legacy plugin duplicates.
+Codex's plugin-list command may contact its catalog and maintain its own CLI caches.
+It does not test model behavior or inspect project-level overrides.
+
+Failures are reported per source and agent. Other targets still run.
+Any failed installation or verification gives a nonzero exit status.
+
+## Deliberate updates
+
+`skills-update SOURCE --ref REF` resolves a branch or tag to an exact commit.
+It prints the current pin, proposed pin, and upstream comparison link.
+It does not change the manifest or installed skills.
+
+Review the upstream diff. Then edit `pin` in `sources.json`.
+For native plugins, also update the declared plugin version.
+Review the selected skill paths when the plugin's skill list changes.
+Run `skills-install`, then `skills-install --check`.
+Commit the reviewed manifest change when ready.
+
+## Restricted Claude
+
+Claude is restricted when `$CODER` is set or managed settings contain `strictKnownMarketplaces`.
+Generic Matt skills use the same installation method on every machine.
+Layered Rails uses `skillsync` only on restricted machines.
+The fallback exports skills, commands, and agents from its pinned clone.
+The installer verifies skill files and rewritten command and agent content.
+It disables the corresponding user plugin IDs to avoid duplicate installations.
+Existing `skillsync` ownership rules still apply; an unowned conflict causes verification to fail.
+
+The fallback reads a temporary manifest containing only the native source.
+Its clones live under `<source-root>/restricted/`.
+`~/.claude/.skillsync.json` remains its ownership record.
+It does not install plugin hooks or MCP servers. Layered Rails has neither at the current pin.
+
+## Evidence and tests
+
+See [installation tradeoffs](INSTALLATION-TRADEOFFS.md) for the source comparison.
+
+```sh
+python3 -m unittest discover -s .config/skills/tests -v
+```
+
+The tests use real Git sources and isolated homes.
+Agent and package CLI fixtures exercise restoration, migration, failures, and verification.
+They also run the real restricted `skillsync` adapter.

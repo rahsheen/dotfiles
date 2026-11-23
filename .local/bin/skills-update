@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Propose a new source pin. Does not install or change the manifest.
+set -euo pipefail
+exec "$(dirname "$0")/skills-install" --propose-update "$@"

@@ -469,4 +469,7 @@ fi
 
 # Skills for each agent harness on PATH, so this runs after the harness installs.
 # Design: ~/.config/skills/README.md.
-"$HOME/.local/bin/skills-install" || echo "ERROR: skills-install failed."
+if ! "$HOME/.local/bin/skills-install"; then
+  echo "ERROR: skills-install failed." >&2
+  exit 1
+fi
